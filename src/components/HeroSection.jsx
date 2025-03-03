@@ -6,7 +6,7 @@ const HeroSection = () => {
   const navigate = useNavigate();  // Hook for navigation
 
   return (
-    <div className="relative w-full h-[60vh] overflow-hidden">
+    <div className="relative w-full h-[70vh] overflow-hidden">
       {/* Header Section */}
       <header className="absolute top-0 left-0 w-full bg-transparent text-white py-6 px-10 z-10">
         <nav className='flex justify-center'>
@@ -19,7 +19,7 @@ const HeroSection = () => {
             </li>
             <li 
               className="cursor-pointer hover:text-gray-300 transition duration-200"
-              onClick={() => navigate('/order')}
+              onClick={() => navigate('/shop')}
             >
               Order Now
             </li>
