@@ -1,16 +1,16 @@
 import React from "react";
 
 const affiliatedSchools = [
-  { name: "Springfield High", imgSrc: "https://via.placeholder.com/150" },
-  { name: "Greenwood Academy", imgSrc: "https://via.placeholder.com/150" },
+  { name: "Springfield High", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQi1hetCzzNp7VU3K4NJ0tu0vCV_pGj-3HV9g&s" },
+  { name: "Greenwood Academy", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtcISCpzTdDOSUKEZNsrMmtLjm3PT11ERmJg&s" },
   { name: "Oakridge International", imgSrc: "https://via.placeholder.com/150" },
-  { name: "St. Xavier's School", imgSrc: "https://via.placeholder.com/150" },
-  { name: "Bright Future School", imgSrc: "https://via.placeholder.com/150" },
-  { name: "Sunshine Public School", imgSrc: "https://via.placeholder.com/150" },
-  { name: "Cambridge Academy", imgSrc: "https://via.placeholder.com/150" },
-  { name: "Heritage Global", imgSrc: "https://via.placeholder.com/150" },
-  { name: "The Millennium School", imgSrc: "https://via.placeholder.com/150" },
-  { name: "Royal International", imgSrc: "https://via.placeholder.com/150" },
+  { name: "St. Xavier's School", imgSrc: "https://stxaviersjagdalpur.in/wp-content/uploads/2020/02/24x24-inch-logo-1.png" },
+  { name: "Bright Future School", imgSrc: "https://content3.jdmagicbox.com/comp/siliguri/q4/9999px353.x353.240206224148.y4q4/catalogue/bright-future-school-loknath-nagar-road-siliguri-english-medium-schools-c4wbp63ef5.jpg" },
+  { name: "Sunshine Public School", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYa8rpBedi-426XTDh2k7seerEPBZlEgDbeQ&s" },
+  { name: "Cambridge Academy", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlhfyUjm3sfww9wapTLLMgzXUPOdVHQmtkyg&s" },
+  { name: "Heritage Global", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8Rm1rB1dgkXTO2JiVei7C3a_GiMYjH76ZAg&s" },
+  { name: "The Millennium School", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTifyQ02adLE8x0JfRYIE1SQ61u8uOxIZO-g&s" },
+  { name: "Royal International", imgSrc: "https://www.risindia.co.in/wp-content/uploads/2022/12/cropped-logo.png" },
 ];
 
 const AffiliatedPartners = () => {
