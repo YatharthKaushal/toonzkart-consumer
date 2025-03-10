@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FaSearch, FaFilter, FaSort, FaMapMarkerAlt } from "react-icons/fa";
+import StoresView from "./StoresView";
 
 const schools = [
   { id: 1, name: "Greenwood High", image: "https://via.placeholder.com/150", location: "Indore" },
@@ -11,10 +12,16 @@ const schools = [
 
 const ShopBySchool = () => {
   const [search, setSearch] = useState("");
+  const [selectedSchool, setSelectedSchool] = useState(null);
 
+  // Filter schools based on search input
   const filteredSchools = schools.filter((school) =>
     school.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (selectedSchool) {
+    return <StoresView selectedSchool={selectedSchool} onBack={() => setSelectedSchool(null)} />;
+  }
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
@@ -43,18 +50,15 @@ const ShopBySchool = () => {
         </div>
       </div>
 
-      {/* School Listings (Improved Grid Layout) */}
+      {/* School Listings */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {filteredSchools.map((school) => (
           <div
             key={school.id}
-            className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1"
+            className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer"
+            onClick={() => setSelectedSchool(school.name)}
           >
-            <img
-              src={school.image}
-              alt={school.name}
-              className="w-full h-40 object-cover rounded-md"
-            />
+            <img src={school.image} alt={school.name} className="w-full h-40 object-cover rounded-md" />
             <h3 className="text-lg font-semibold mt-3 text-gray-800">{school.name}</h3>
             <p className="text-gray-600 flex items-center">
               <FaMapMarkerAlt className="text-red-500 mr-2" /> {school.location}

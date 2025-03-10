@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import StoresView from "./StoresView";
 
 const authors = [
   { id: 1, name: "J.K. Rowling", image: "https://source.unsplash.com/100x100/?author" },
@@ -28,12 +29,18 @@ const books = [
 
 const ShopByDemand = () => {
   const [search, setSearch] = useState("");
+  const [selectedBook, setSelectedBook] = useState(null);
 
+  // Filter books based on search
   const filteredBooks = books.filter(
     (book) =>
       book.title.toLowerCase().includes(search.toLowerCase()) ||
       book.author.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (selectedBook) {
+    return <StoresView selectedBook={selectedBook} onBack={() => setSelectedBook(null)} />;
+  }
 
   return (
     <div className="w-screen min-h-screen bg-gray-50 py-8">
@@ -55,11 +62,7 @@ const ShopByDemand = () => {
           <div className="flex gap-6">
             {authors.map((author) => (
               <div key={author.id} className="flex flex-col items-center min-w-[100px]">
-                <img
-                  src={author.image}
-                  alt={author.name}
-                  className="w-20 h-20 rounded-full shadow-md border-2 border-gray-300"
-                />
+                <img src={author.image} alt={author.name} className="w-20 h-20 rounded-full shadow-md border-2 border-gray-300" />
                 <p className="text-sm text-gray-700 mt-2">{author.name}</p>
               </div>
             ))}
@@ -70,12 +73,8 @@ const ShopByDemand = () => {
         <h2 className="text-xl font-semibold text-gray-800 mt-6 mb-4">Trending Books</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredBooks.map((book) => (
-            <div key={book.id} className="border p-4 rounded-lg shadow-md bg-white hover:shadow-xl transition-all">
-              <img
-                src={book.image}
-                alt={book.title}
-                className="w-full h-48 object-cover rounded-md"
-              />
+            <div key={book.id} className="border p-4 rounded-lg shadow-md bg-white hover:shadow-xl transition-all cursor-pointer" onClick={() => setSelectedBook(book.title)}>
+              <img src={book.image} alt={book.title} className="w-full h-48 object-cover rounded-md" />
               <h3 className="text-lg font-semibold mt-2">{book.title}</h3>
               <p className="text-gray-600">{book.author}</p>
             </div>

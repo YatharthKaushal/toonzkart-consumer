@@ -5,19 +5,19 @@ const categories = [
     title: "Shop by School",
     subtitle: "Find books recommended by your school",
     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrQTR-IT3E65fMCzbtuMaWP_7F3Q-qAMQdrA&s",
-    link: "/shop-by-school",
+    link: "/shop",
   },
   {
     title: "Shop by Subject",
     subtitle: "Browse books by subject and topics",
     image: "https://jacksonjournal.news/wp-content/uploads/2023/12/preview-school-subjects-01-1da8db463d53b76965d1667795c62eda86eb2dd4146879c719431522da0a855a.jpg",
-    link: "/shop-by-subject",
+    link: "/shop",
   },
   {
     title: "Shop by Demand",
     subtitle: "Discover trending and in-demand books",
     image: "https://www.realsimple.com/thmb/m1YY-PipA4UpKqtRTacPaJ1IA7g=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/great-books-for-anytime-2000-4ff4221eb1e54b659689fef7d5e265d5.jpg",
-    link: "/shop-by-demand",
+    link: "/shop",
   }
 ];
 
