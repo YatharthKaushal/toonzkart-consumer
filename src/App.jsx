@@ -5,6 +5,9 @@ import StoreDetails from "./pages/StoreDetails";
 import CartPage from "./pages/CartPage";
 import {Login, Signup} from "./pages/LoginSignup";
 import ProfilePage from "./pages/ProfilePage";
+import AboutUsPage from "./pages/AboutUsPage";
+import ContactUsPage from "./pages/ContactUsPage";
+import StoresPage from "./pages/StoresPage";
 
 function App() {
   return (
@@ -15,6 +18,10 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/about" element={<AboutUsPage />} />
+      <Route path="/contact" element={<ContactUsPage />} />
+      <Route path="/stores" element={<StoresPage />} />
+      
       <Route 
           path="/cart" 
           element={
