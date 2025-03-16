@@ -59,7 +59,7 @@ export const Signup = () => {
         // localStorage.setItem('token', data.token);
 
         localStorage.setItem('isLoggedIn', 'true');
-        // Store user details if needed
+        localStorage.setItem('token', data.token);
         localStorage.setItem('userName', name);
         localStorage.setItem('userEmail', email);
 

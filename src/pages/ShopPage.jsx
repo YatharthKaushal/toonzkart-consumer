@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ShopBySchool from "../components/ShopBySchool";
 import ShopByProduct from "../components/ShopByProduct";
 import ShopByDemand from "../components/ShopByDemand";
@@ -7,6 +7,12 @@ import toonzkartLogo from "../assets/toonzkart_logo.png";
 
 const ShopPage = () => {
   const [activeTab, setActiveTab] = useState("school"); // Default tab
+
+  // Add useEffect to fetch and log the user token when component mounts
+  useEffect(() => {
+    const userToken = localStorage.getItem('token');
+    console.log('User Token:', userToken);
+  }, []);
 
   return (
     <div className="w-full min-h-screen bg-gray-100">

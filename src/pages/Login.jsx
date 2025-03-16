@@ -46,6 +46,7 @@ export const Login = () => {
 
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('userEmail', email);
+        localStorage.setItem('token', data.token);
         
         // Redirect to shop page
         navigate('/shop');
