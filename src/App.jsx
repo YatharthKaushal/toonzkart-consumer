@@ -3,7 +3,10 @@ import HomePage from "./pages/HomePage";
 import ShopPage from "./pages/ShopPage";
 import StoreDetails from "./pages/StoreDetails";
 import CartPage from "./pages/CartPage";
-import {Login, Signup} from "./pages/LoginSignup";
+import { Login } from './pages/Login';
+import { Signup } from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import ProfilePage from "./pages/ProfilePage";
 import AboutUsPage from "./pages/AboutUsPage";
 import ContactUsPage from "./pages/ContactUsPage";
@@ -21,7 +24,8 @@ function App() {
       <Route path="/about" element={<AboutUsPage />} />
       <Route path="/contact" element={<ContactUsPage />} />
       <Route path="/stores" element={<StoresPage />} />
-      
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route 
           path="/cart" 
           element={
