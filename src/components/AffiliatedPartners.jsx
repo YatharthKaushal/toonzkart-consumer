@@ -18,18 +18,18 @@ const AffiliatedPartners = () => {
     <div className="w-full py-16 px-8 bg-gray-100">
       {/* Section Header */}
       <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold text-gray-800">Our Affiliated Partners</h2>
+        <h2 className="text-4xl font-bold text-gray-800">School Curriculum Books</h2>
         <p className="text-lg text-gray-600 mt-2">
-          Partnering with the best schools for quality education resources.
+          Official textbooks and materials from these leading educational institutions
         </p>
       </div>
 
       {/* Partners Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 max-w-6xl mx-auto">
         {affiliatedSchools.map((school, index) => (
-          <div key={index} className="flex flex-col items-center">
-            {/* Circular Image */}
-            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-gray-300 shadow-lg">
+          <div key={index} className="flex flex-col items-center group">
+            {/* Circular Image with hover effect */}
+            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-gray-300 shadow-lg transition-transform duration-300 ">
               <img
                 src={school.imgSrc}
                 alt={school.name}
@@ -37,7 +37,7 @@ const AffiliatedPartners = () => {
               />
             </div>
             {/* School Name */}
-            <p className="text-gray-800 font-semibold mt-3 text-center">{school.name}</p>
+            <p className="text-gray-800 font-semibold mt-3 text-center transition-colors duration-300">{school.name}</p>
           </div>
         ))}
       </div>

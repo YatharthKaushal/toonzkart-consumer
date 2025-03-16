@@ -8,7 +8,7 @@ const categories = [
     link: "/shop",
   },
   {
-    title: "Shop by Subject",
+    title: "Shop by Products",
     subtitle: "Browse books by subject and topics",
     image: "https://jacksonjournal.news/wp-content/uploads/2023/12/preview-school-subjects-01-1da8db463d53b76965d1667795c62eda86eb2dd4146879c719431522da0a855a.jpg",
     link: "/shop",

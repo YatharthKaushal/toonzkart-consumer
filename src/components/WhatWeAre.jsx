@@ -1,5 +1,5 @@
 import React from "react";
-import { FaBook, FaSchool, FaChalkboardTeacher, FaShoppingCart, FaTools } from "react-icons/fa";
+import { FaBook, FaSchool, FaChalkboardTeacher, FaShoppingCart, FaTools, FaPencilAlt, FaBriefcase, FaFootballBall } from "react-icons/fa";
 
 const services = [
   {
@@ -27,6 +27,21 @@ const services = [
     title: "Customization Services",
     description: "Get your books, notebooks, and uniforms customized as per your needs.",
   },
+  {
+    icon: <FaPencilAlt className="text-4xl text-pink-600" />,
+    title: "Stationery & Art Supplies",
+    description: "Premium art supplies, craft materials, and creative stationery for artists of all ages.",
+  },
+  {
+    icon: <FaBriefcase className="text-4xl text-indigo-600" />,
+    title: "Office Materials",
+    description: "Complete range of professional office supplies, organizers, and business essentials.",
+  },
+  {
+    icon: <FaFootballBall className="text-4xl text-orange-600" />,
+    title: "Sports & Toys",
+    description: "Educational toys, board games, and sports equipment for recreation and development.",
+  },
 ];
 
 const WhatWeAre = () => {
@@ -41,7 +56,7 @@ const WhatWeAre = () => {
       </div>
 
       {/* Services Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl mx-auto">
         {services.map((service, index) => (
           <div
             key={index}
@@ -50,7 +65,7 @@ const WhatWeAre = () => {
             {/* Icon */}
             <div className="mb-4">{service.icon}</div>
             {/* Title */}
-            <h3 className="text-xl font-semibold text-gray-800">{service.title}</h3>
+            <h3 className="text-xl font-semibold text-gray-800 text-center">{service.title}</h3>
             {/* Description */}
             <p className="text-gray-600 text-center mt-2">{service.description}</p>
           </div>
