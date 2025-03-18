@@ -1,18 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { FaSearch, FaFilter, FaSort, FaMapMarkerAlt } from "react-icons/fa";
 import StoresView from "./StoresView";
 
-const schools = [
-  { id: 1, name: "Greenwood High", image: "https://via.placeholder.com/150", location: "Indore" },
-  { id: 2, name: "Delhi Public School", image: "https://via.placeholder.com/150", location: "Mumbai" },
-  { id: 3, name: "Ryan International", image: "https://via.placeholder.com/150", location: "Delhi" },
-  { id: 4, name: "National Public School", image: "https://via.placeholder.com/150", location: "Bangalore" },
-  { id: 5, name: "St. Xavier’s", image: "https://via.placeholder.com/150", location: "Kolkata" },
-];
-
 const ShopBySchool = () => {
+  const [schools, setSchools] = useState([]); // Store schools from API
   const [search, setSearch] = useState("");
   const [selectedSchool, setSelectedSchool] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Fetch schools from the backend
+  useEffect(() => {
+    const fetchSchools = async () => {
+      try {
+        const response = await axios.get("https://backend-lzb7.onrender.com/api/schools");
+        setSchools(response.data);
+      } catch (err) {
+        setError("Failed to load schools. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchools();
+  }, []);
 
   // Filter schools based on search input
   const filteredSchools = schools.filter((school) =>
@@ -50,22 +62,33 @@ const ShopBySchool = () => {
         </div>
       </div>
 
-      {/* School Listings */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredSchools.map((school) => (
-          <div
-            key={school.id}
-            className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer"
-            onClick={() => setSelectedSchool(school.name)}
-          >
-            <img src={school.image} alt={school.name} className="w-full h-40 object-cover rounded-md" />
-            <h3 className="text-lg font-semibold mt-3 text-gray-800">{school.name}</h3>
-            <p className="text-gray-600 flex items-center">
-              <FaMapMarkerAlt className="text-red-500 mr-2" /> {school.location}
-            </p>
-          </div>
-        ))}
-      </div>
+      {/* Error Message */}
+      {error && <div className="text-red-600 text-center my-4">{error}</div>}
+
+      {/* Loading State */}
+      {loading ? (
+        <div className="text-center text-gray-700">Loading schools...</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredSchools.map((school) => (
+            <div
+              key={school._id}
+              className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer"
+              onClick={() => setSelectedSchool(school)}
+            >
+              <img
+                src={school.image || "https://via.placeholder.com/150"}
+                alt={school.name}
+                className="w-full h-40 object-cover rounded-md"
+              />
+              <h3 className="text-lg font-semibold mt-3 text-gray-800">{school.name}</h3>
+              <p className="text-gray-600 flex items-center">
+                <FaMapMarkerAlt className="text-red-500 mr-2" /> {school.location.city}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
