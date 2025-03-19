@@ -1,83 +1,120 @@
-import React, { useState } from 'react';
-import { Info, Phone, Navigation, Share, Star, Clock, FileText, Menu as MenuIcon, Book, ShoppingCart, ChevronDown, Filter, Search } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header'; // Import the Header component
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { Info, Phone, Navigation, Share, Star, Clock, FileText, Book, ShoppingCart, Filter, Search, ArrowLeft } from 'lucide-react';
+import Header from '../components/Header';
 import toonzkartLogo from "../assets/toonzkart_logo.png";
 
+const API_BASE_URL = "https://backend-lzb7.onrender.com"; // Backend API URL
+
 const StoreDetails = () => {
+  // Changed from storeId to id to match the route parameter
+  const { id } = useParams();
+  const navigate = useNavigate();
+  
+  // State for store data
+  const [store, setStore] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  
+  // State for books data
+  const [allBooks, setAllBooks] = useState([]);
+  const [storeBooks, setStoreBooks] = useState([]);
+  const [booksLoading, setBooksLoading] = useState(true);
+  const [booksError, setBooksError] = useState("");
+  
   // Use local state for cart items and quantities
   const [cartItems, setCartItems] = useState([]);
   const [bookQuantities, setBookQuantities] = useState({});
   
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('Browse Books');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('School Books');
+  const [activeCategory, setActiveCategory] = useState('All Books');
   const [activeSubject, setActiveSubject] = useState(null);
   const [showSchools, setShowSchools] = useState(true);
 
-  // Sample book data 
-  const bookData = {
-    "School Books": [
-      { id: 1, title: "Mathematics Grade 6", author: "NCERT Publication", price: 175, publisher: "NCERT", category: "School Books", schools: ["Delhi Public School", "St. Mary's School"] },
-      { id: 2, title: "Science Grade 8", author: "NCERT Publication", price: 195, publisher: "NCERT", category: "School Books", schools: ["Delhi Public School", "Ryan International"] },
-      { id: 3, title: "English Literature Grade 7", author: "Oxford Publications", price: 225, publisher: "Oxford", category: "School Books", schools: ["St. Mary's School", "Modern School"] },
-      { id: 4, title: "Social Studies Grade 9", author: "NCERT Publication", price: 210, publisher: "NCERT", category: "School Books", schools: ["Delhi Public School", "DAV Public School"] },
-      { id: 5, title: "Hindi Vyakaran Grade 6", author: "Bharti Bhawan", price: 150, publisher: "Bharti Publications", category: "School Books", schools: ["DAV Public School", "Kendriya Vidyalaya"] },
-      { id: 6, title: "Computer Science Grade 10", author: "Sumita Arora", price: 350, publisher: "Dhanpat Rai", category: "School Books", schools: ["Delhi Public School", "Ryan International"] },
-      { id: 7, title: "Physics Grade 12", author: "HC Verma", price: 425, publisher: "Bharti Bhawan", category: "School Books", schools: ["Delhi Public School", "Modern School"] },
-      { id: 8, title: "Chemistry Grade 11", author: "NCERT Publication", price: 300, publisher: "NCERT", category: "School Books", schools: ["St. Mary's School", "DAV Public School"] }
-    ],
-    "College Textbooks": [
-      { id: 9, title: "Fundamentals of Database Systems", author: "Elmasri & Navathe", price: 750, publisher: "Pearson", category: "College Textbooks" },
-      { id: 10, title: "Engineering Physics", author: "B.K. Pandey", price: 560, publisher: "Cengage Learning", category: "College Textbooks" },
-      { id: 11, title: "Financial Accounting", author: "T.S. Grewal", price: 480, publisher: "Sultan Chand & Sons", category: "College Textbooks" },
-      { id: 12, title: "Principles of Economics", author: "N. Gregory Mankiw", price: 890, publisher: "Cengage Learning", category: "College Textbooks" }
-    ],
-    "Fiction": [
-      { id: 13, title: "The Midnight Library", author: "Matt Haig", price: 350, publisher: "Penguin Random House", category: "Fiction" },
-      { id: 14, title: "A Court of Thorns and Roses", author: "Sarah J. Maas", price: 420, publisher: "Bloomsbury", category: "Fiction" },
-      { id: 15, title: "The Silent Patient", author: "Alex Michaelides", price: 380, publisher: "Celadon Books", category: "Fiction" },
-      { id: 16, title: "The Invisible Life of Addie LaRue", author: "V.E. Schwab", price: 450, publisher: "Tor Books", category: "Fiction" }
-    ],
-    "Non-Fiction": [
-      { id: 17, title: "Atomic Habits", author: "James Clear", price: 340, publisher: "Penguin Random House", category: "Non-Fiction" },
-      { id: 18, title: "Sapiens: A Brief History of Humankind", author: "Yuval Noah Harari", price: 499, publisher: "Harper", category: "Non-Fiction" },
-      { id: 19, title: "Thinking, Fast and Slow", author: "Daniel Kahneman", price: 550, publisher: "Farrar, Straus and Giroux", category: "Non-Fiction" }
-    ],
-    "Children's Books": [
-      { id: 20, title: "Harry Potter and the Sorcerer's Stone", author: "J.K. Rowling", price: 399, publisher: "Bloomsbury", category: "Children's Books" },
-      { id: 21, title: "The Very Hungry Caterpillar", author: "Eric Carle", price: 250, publisher: "Penguin Random House", category: "Children's Books" },
-      { id: 22, title: "Percy Jackson & The Lightning Thief", author: "Rick Riordan", price: 350, publisher: "Disney-Hyperion", category: "Children's Books" }
-    ]
+  // Fetch store details from API
+  useEffect(() => {
+    const fetchStoreDetails = async () => {
+      setLoading(true);
+      try {
+        // Use id parameter instead of storeId
+        console.log("Fetching store with ID:", id);
+        const response = await axios.get(`${API_BASE_URL}/api/stores/${id}`);
+        console.log("Store API Response:", response.data);
+        setStore(response.data);
+
+        // Fetch books data after store is loaded
+        if (response.data && response.data.inventory && response.data.inventory.length > 0) {
+          fetchAllBooks(response.data.inventory);
+        } else {
+          setBooksLoading(false);
+        }
+      } catch (err) {
+        console.error("Error fetching store details:", err);
+        setError("Failed to load store details. Please try again.");
+        setBooksLoading(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchStoreDetails();
+    } else {
+      console.error("No store ID provided in URL parameters");
+      setError("No store ID provided");
+      setLoading(false);
+      setBooksLoading(false);
+    }
+  }, [id]);
+
+  // Fetch all books and filter for this store's inventory
+  const fetchAllBooks = async (inventory) => {
+    setBooksLoading(true);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/books`);
+      console.log("Books API Response:", response.data);
+      
+      // Save all books
+      setAllBooks(response.data);
+      
+      // Filter books for this store's inventory
+      const inventoryBookIds = inventory.map(item => item.book);
+      const filteredBooks = response.data.filter(book => 
+        inventoryBookIds.includes(book._id)
+      );
+      
+      console.log("Filtered books for this store:", filteredBooks);
+      setStoreBooks(filteredBooks);
+    } catch (err) {
+      console.error("Error fetching books:", err);
+      setBooksError("Failed to load books. Please try again.");
+    } finally {
+      setBooksLoading(false);
+    }
   };
 
-  const bookCategories = [
-    { name: 'School Books', count: 8, active: activeCategory === 'School Books' },
-    { name: 'College Textbooks', count: 4, active: activeCategory === 'College Textbooks' },
-    { name: 'Fiction', count: 4, active: activeCategory === 'Fiction' },
-    { name: 'Non-Fiction', count: 3, active: activeCategory === 'Non-Fiction' },
-    { name: 'Children\'s Books', count: 3, active: activeCategory === 'Children\'s Books' },
-    { name: 'Stationery', count: 0, active: activeCategory === 'Stationery' },
-    { name: 'Exam Preparation', count: 0, active: activeCategory === 'Exam Preparation' },
-  ];
+  // Get unique categories from books
+  const getUniqueCategories = () => {
+    if (!storeBooks || storeBooks.length === 0) return [];
+    
+    const categories = ['All Books'];
+    storeBooks.forEach(book => {
+      if (book.category && !categories.includes(book.category)) {
+        categories.push(book.category);
+      }
+    });
+    
+    return categories.map(category => ({
+      name: category,
+      count: category === 'All Books' 
+        ? storeBooks.length 
+        : storeBooks.filter(book => book.category === category).length,
+      active: activeCategory === category
+    }));
+  };
 
-  const subjects = [
-    { name: 'Mathematics', count: 2, active: activeSubject === 'Mathematics' },
-    { name: 'Science', count: 3, active: activeSubject === 'Science' },
-    { name: 'Literature', count: 2, active: activeSubject === 'Literature' },
-    { name: 'Computer Science', count: 1, active: activeSubject === 'Computer Science' },
-    { name: 'History', count: 1, active: activeSubject === 'History' },
-  ];
-
-  const schools = [
-    { name: 'Delhi Public School', count: 5 },
-    { name: 'St. Mary\'s School', count: 3 },
-    { name: 'Ryan International', count: 2 },
-    { name: 'Modern School', count: 2 },
-    { name: 'DAV Public School', count: 3 },
-    { name: 'Kendriya Vidyalaya', count: 1 },
-  ];
+  const bookCategories = getUniqueCategories();
 
   const handleCategoryClick = (category) => {
     setActiveCategory(category);
@@ -95,11 +132,11 @@ const StoreDetails = () => {
   // Simplified add to cart function without alerts
   const addToCart = (book) => {
     // Check if book is already in cart quantities
-    if (bookQuantities[book.id]) {
+    if (bookQuantities[book._id]) {
       // Book already has quantity, just increment it
       setBookQuantities(prev => ({
         ...prev,
-        [book.id]: (prev[book.id] || 0) + 1
+        [book._id]: (prev[book._id] || 0) + 1
       }));
       return;
     }
@@ -107,7 +144,7 @@ const StoreDetails = () => {
     // Add book to quantities with initial count of 1
     setBookQuantities(prev => ({
       ...prev,
-      [book.id]: 1
+      [book._id]: 1
     }));
     
     // Add to cart items if not already there
@@ -126,7 +163,7 @@ const StoreDetails = () => {
       setBookQuantities(newQuantities);
       
       // Remove from cart
-      setCartItems(cartItems.filter(item => item.id !== bookId));
+      setCartItems(cartItems.filter(item => item._id !== bookId));
     } else {
       // Update quantity
       setBookQuantities(prev => ({
@@ -136,9 +173,64 @@ const StoreDetails = () => {
     }
   };
 
-  const displayedBooks = bookData[activeCategory] || [];
+  // Filter books by category and search query
+  const getFilteredBooks = () => {
+    if (!storeBooks) return [];
+    
+    let filtered = storeBooks;
+    
+    // Filter by category
+    if (activeCategory !== 'All Books') {
+      filtered = filtered.filter(book => book.category === activeCategory);
+    }
+    
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(book => 
+        (book.title && book.title.toLowerCase().includes(query)) ||
+        (book.author && book.author.toLowerCase().includes(query)) ||
+        (book.category && book.category.toLowerCase().includes(query))
+      );
+    }
+    
+    return filtered;
+  };
+
+  const displayedBooks = getFilteredBooks();
+
+  // Format store hours for display
+  const formatStoreHours = (hours) => {
+    return hours || "9am – 8:30pm"; // Default if not provided
+  };
   
-  // Assuming you have a logo image, import it similarly to what we did in ShopPage
+  // Format price with rupee symbol
+  const formatPrice = (price) => {
+    return `₹${price}`;
+  };
+  
+  // Handle back button click
+  const handleBack = () => {
+    navigate(-1);
+  };
+
+  // Error state for the entire page only if completely failed
+  if (error && !store) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-lg mb-2">Error</div>
+          <p className="text-gray-600">{error}</p>
+          <button 
+            onClick={handleBack} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full font-sans">
@@ -148,65 +240,100 @@ const StoreDetails = () => {
       </div>
 
       <div className="w-full px-6 pt-6">
-  
-
+        {/* Back Button */}
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 mb-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+        >
+          <ArrowLeft size={18} />
+          <span>Back</span>
+        </button>
+        
         {/* Bookstore Info */}
         <div className="mb-6 relative">
-          <h1 className="text-3xl font-bold mb-1">Wisdom Books</h1>
-          <p className="text-gray-600 mb-1">School Books, College Textbooks, Fiction, Stationery</p>
-          <p className="text-gray-500 mb-3">MG Road, Central District</p>
-          
-          <div className="flex items-center mb-4">
-            <div className="flex items-center">
-              <Clock size={16} className="text-gray-400 mr-1" />
-              <span className="text-gray-500 mr-1">Open now -</span>
-              <span className="text-gray-700">9am – 8:30pm (Today)</span>
-              <Info size={16} className="text-gray-400 ml-1" />
+          {loading ? (
+            <div className="p-6 bg-white rounded-md shadow-sm">
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="flex space-x-2 mb-6">
+                  <div className="h-10 bg-gray-200 rounded w-24"></div>
+                  <div className="h-10 bg-gray-200 rounded w-24"></div>
+                  <div className="h-10 bg-gray-200 rounded w-24"></div>
+                  <div className="h-10 bg-gray-200 rounded w-32"></div>
+                </div>
+              </div>
             </div>
-            <span className="mx-3 text-gray-300">|</span>
-            <div className="flex items-center">
-              <Phone size={16} className="text-gray-400 mr-1" />
-              <span className="text-blue-600 hover:underline cursor-pointer">+919876543210</span>
-            </div>
-          </div>
-          
-          <div className="flex space-x-2 mb-6">
-            <button className="flex items-center px-4 py-2 border rounded-md hover:bg-blue-50 transition-colors">
-              <Navigation size={16} className="mr-1 text-blue-600" />
-              <span>Direction</span>
-            </button>
-            <button className="flex items-center px-4 py-2 border rounded-md hover:bg-blue-50 transition-colors">
-              <Share size={16} className="mr-1 text-blue-600" />
-              <span>Share</span>
-            </button>
-            <button className="flex items-center px-4 py-2 border rounded-md hover:bg-blue-50 transition-colors">
-              <FileText size={16} className="mr-1 text-blue-600" />
-              <span>Reviews</span>
-            </button>
-            <button className="flex items-center px-4 py-2 border rounded-md hover:bg-blue-50 transition-colors">
-              <Book size={16} className="mr-1 text-blue-600" />
-              <span>Book an Appointment</span>
-            </button>
-          </div>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold mb-1">{store?.storeName || "Store"}</h1>
+              <p className="text-gray-600 mb-1">{store?.description || "Books and more"}</p>
+              <p className="text-gray-500 mb-3">{store?.address || "Loading address..."}</p>
+              
+              <div className="flex items-center mb-4">
+                <div className="flex items-center">
+                  <Clock size={16} className="text-gray-400 mr-1" />
+                  <span className="text-gray-500 mr-1">Open now -</span>
+                  <span className="text-gray-700">{formatStoreHours(store?.storeHours)} (Today)</span>
+                  <Info size={16} className="text-gray-400 ml-1" />
+                </div>
+                <span className="mx-3 text-gray-300">|</span>
+                <div className="flex items-center">
+                  <Phone size={16} className="text-gray-400 mr-1" />
+                  <span className="text-blue-600 hover:underline cursor-pointer">{store?.phoneNumber || "N/A"}</span>
+                </div>
+              </div>
+              
+              <div className="flex space-x-2 mb-6">
+                <button className="flex items-center px-4 py-2 border rounded-md hover:bg-blue-50 transition-colors">
+                  <Navigation size={16} className="mr-1 text-blue-600" />
+                  <span>Direction</span>
+                </button>
+                <button className="flex items-center px-4 py-2 border rounded-md hover:bg-blue-50 transition-colors">
+                  <Share size={16} className="mr-1 text-blue-600" />
+                  <span>Share</span>
+                </button>
+                <button className="flex items-center px-4 py-2 border rounded-md hover:bg-blue-50 transition-colors">
+                  <FileText size={16} className="mr-1 text-blue-600" />
+                  <span>Reviews</span>
+                </button>
+                <button className="flex items-center px-4 py-2 border rounded-md hover:bg-blue-50 transition-colors">
+                  <Book size={16} className="mr-1 text-blue-600" />
+                  <span>Book an Appointment</span>
+                </button>
+              </div>
+            </>
+          )}
 
           {/* Ratings Section - Fixed alignment */}
           <div className="absolute top-0 right-0 flex space-x-4">
-            <div className="bg-blue-600 text-white p-2 rounded flex items-center">
-              <span className="font-bold mr-1">4.2</span>
-              <Star size={16} fill="white" />
-              <div className="ml-2 text-xs">
-                <div>235</div>
-                <div>Store Ratings</div>
+            {loading ? (
+              <div className="flex space-x-4">
+                <div className="w-28 h-16 bg-gray-200 rounded animate-pulse"></div>
+                <div className="w-28 h-16 bg-gray-200 rounded animate-pulse"></div>
               </div>
-            </div>
-            <div className="bg-green-600 text-white p-2 rounded flex items-center">
-              <span className="font-bold mr-1">4.5</span>
-              <Star size={16} fill="white" />
-              <div className="ml-2 text-xs">
-                <div>1.2K</div>
-                <div>Delivery Ratings</div>
-              </div>
-            </div>
+            ) : (
+              <>
+                <div className="bg-blue-600 text-white p-2 rounded flex items-center">
+                  <span className="font-bold mr-1">4.2</span>
+                  <Star size={16} fill="white" />
+                  <div className="ml-2 text-xs">
+                    <div>235</div>
+                    <div>Store Ratings</div>
+                  </div>
+                </div>
+                <div className="bg-green-600 text-white p-2 rounded flex items-center">
+                  <span className="font-bold mr-1">4.5</span>
+                  <Star size={16} fill="white" />
+                  <div className="ml-2 text-xs">
+                    <div>1.2K</div>
+                    <div>Delivery Ratings</div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -227,35 +354,23 @@ const StoreDetails = () => {
               ))}
             </ul>
 
-            <h3 className="font-semibold text-gray-800 mb-2 px-3">Subjects</h3>
-            <ul className="mb-6">
-              {subjects.map(subject => (
-                <li 
-                  key={subject.name}
-                  onClick={() => handleSubjectClick(subject.name)}
-                  className={`p-3 cursor-pointer hover:bg-blue-50 transition-colors ${subject.active ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700'}`}
-                >
-                  {subject.name} ({subject.count})
-                </li>
-              ))}
-            </ul>
-
-            {/* School list for School Books category */}
-            {showSchools && (
-              <>
-                <h3 className="font-semibold text-gray-800 mb-2 px-3">Schools</h3>
-                <ul>
-                  {schools.map(school => (
-                    <li 
-                      key={school.name}
-                      className="p-3 cursor-pointer hover:bg-blue-50 transition-colors text-gray-700"
-                    >
-                      {school.name} ({school.count})
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
+            {/* Store Information */}
+            <div className="bg-blue-50 p-4 rounded-md mb-6">
+              <h3 className="font-semibold text-gray-800 mb-2">Store Info</h3>
+              {loading ? (
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                </div>
+              ) : (
+                <div className="text-sm">
+                  <p className="mb-1"><span className="font-medium">Manager:</span> {store?.managerName || "Not specified"}</p>
+                  <p className="mb-1"><span className="font-medium">Email:</span> {store?.email || "Not specified"}</p>
+                  <p className="mb-1"><span className="font-medium">Phone:</span> {store?.phoneNumber || "Not specified"}</p>
+                  <p className="mb-1"><span className="font-medium">Website:</span> {store?.website || "Not specified"}</p>
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Book Listings */}
@@ -300,63 +415,127 @@ const StoreDetails = () => {
               </div>
             </div>
             
-            {/* School information for School Books category */}
-            {activeCategory === 'School Books' && (
-              <div className="mb-6 p-4 bg-blue-50 rounded-md">
-                <h3 className="font-bold text-blue-800 mb-2">Available School Books</h3>
-                <p className="text-gray-700 mb-2">We stock books for the following schools:</p>
-                <div className="flex flex-wrap gap-2">
-                  {schools.map(school => (
-                    <span key={school.name} className="bg-white px-3 py-1 rounded-full text-sm border border-blue-200">
-                      {school.name}
-                    </span>
-                  ))}
+            {/* Inventory Information */}
+            <div className="mb-6 p-4 bg-blue-50 rounded-md">
+              {booksLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-6 bg-gray-200 rounded w-1/3 mb-3"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3 mb-3"></div>
                 </div>
+              ) : storeBooks.length > 0 ? (
+                <>
+                  <h3 className="font-bold text-blue-800 mb-2">Store Inventory</h3>
+                  <p className="text-gray-700 mb-2">
+                    We have {storeBooks.length} books available in our store.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-bold text-blue-800 mb-2">No Books Available</h3>
+                  <p className="text-gray-700 mb-2">
+                    Sorry, this store currently doesn't have any books in inventory.
+                  </p>
+                </>
+              )}
+            </div>
+            
+            {/* Books Error Message */}
+            {booksError && (
+              <div className="mb-6 p-4 bg-red-50 rounded-md border border-red-200">
+                <h3 className="font-bold text-red-800 mb-2">Error Loading Books</h3>
+                <p className="text-gray-700">{booksError}</p>
               </div>
             )}
             
             {/* Book Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {displayedBooks.map(book => (
-                <div key={book.id} className="border rounded-md p-3 hover:shadow-md transition-shadow flex flex-col h-full">
-                  <div className="h-40 mb-2 bg-gray-100 flex items-center justify-center rounded overflow-hidden">
-                    <div className="text-gray-400 text-center p-4">Book Cover</div>
+              {booksLoading ? (
+                // Loading placeholders for books
+                Array(4).fill().map((_, index) => (
+                  <div key={index} className="border rounded-md p-3 flex flex-col h-full">
+                    <div className="animate-pulse">
+                      <div className="h-40 mb-2 bg-gray-200 rounded"></div>
+                      <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/3 mb-3"></div>
+                      <div className="h-5 bg-gray-200 rounded w-1/4 mb-3"></div>
+                      <div className="h-10 bg-gray-200 rounded w-full mt-auto"></div>
+                    </div>
                   </div>
-                  <h4 className="font-medium text-gray-800 line-clamp-2">{book.title}</h4>
-                  <p className="text-sm text-gray-500">{book.author}</p>
-                  <p className="text-xs text-gray-400">{book.publisher}</p>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="font-bold">₹{book.price}</span>
-                  </div>
-                  <div className="mt-auto pt-3">
-                    {!bookQuantities[book.id] ? (
-                      <button 
-                        onClick={() => addToCart(book)}
-                        className="w-full bg-blue-600 text-white py-2 px-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-                      >
-                        <ShoppingCart size={16} className="mr-2" />
-                        <span>Add to Cart</span>
-                      </button>
-                    ) : (
-                      <div className="w-full flex items-center justify-between border border-blue-600 rounded-md">
+                ))
+              ) : displayedBooks.length > 0 ? (
+                displayedBooks.map(book => (
+                  <div key={book._id} className="border rounded-md p-3 hover:shadow-md transition-shadow flex flex-col h-full">
+                    <div className="h-40 mb-2 bg-gray-100 flex items-center justify-center rounded overflow-hidden">
+                      {book.image ? (
+                        <img 
+                          src={`${API_BASE_URL}${book.image}`} 
+                          alt={book.title} 
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "https://via.placeholder.com/150x200?text=No+Image";
+                          }}
+                        />
+                      ) : (
+                        <div className="text-gray-400 text-center p-4">No Image Available</div>
+                      )}
+                    </div>
+                    <h4 className="font-medium text-gray-800 line-clamp-2">{book.title}</h4>
+                    <p className="text-sm text-gray-500">{book.author}</p>
+                    <p className="text-xs text-gray-400">{book.publisher || book.category}</p>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="font-bold">{formatPrice(book.price)}</span>
+                      {book.originalPrice && book.originalPrice > book.price && (
+                        <span className="text-xs text-gray-500 line-through">
+                          {formatPrice(book.originalPrice)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-auto pt-3">
+                      {!bookQuantities[book._id] ? (
                         <button 
-                          onClick={() => updateQuantity(book.id, -1)}
-                          className="bg-blue-600 text-white py-1 px-3 rounded-l-md hover:bg-blue-700 transition-colors"
+                          onClick={() => addToCart(book)}
+                          className="w-full bg-blue-600 text-white py-2 px-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
+                          disabled={book.status === "Out of Stock"}
                         >
-                          -
+                          <ShoppingCart size={16} className="mr-2" />
+                          <span>{book.status === "Out of Stock" ? "Out of Stock" : "Add to Cart"}</span>
                         </button>
-                        <span className="px-3">{bookQuantities[book.id]}</span>
-                        <button 
-                          onClick={() => updateQuantity(book.id, 1)}
-                          className="bg-blue-600 text-white py-1 px-3 rounded-r-md hover:bg-blue-700 transition-colors"
-                        >
-                          +
-                        </button>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="w-full flex items-center justify-between border border-blue-600 rounded-md">
+                          <button 
+                            onClick={() => updateQuantity(book._id, -1)}
+                            className="bg-blue-600 text-white py-1 px-3 rounded-l-md hover:bg-blue-700 transition-colors"
+                          >
+                            -
+                          </button>
+                          <span className="px-3">{bookQuantities[book._id]}</span>
+                          <button 
+                            onClick={() => updateQuantity(book._id, 1)}
+                            className="bg-blue-600 text-white py-1 px-3 rounded-r-md hover:bg-blue-700 transition-colors"
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="col-span-full text-center p-8 bg-gray-50 rounded-md">
+                  <p className="text-gray-500">No books found matching your criteria.</p>
+                  <button
+                    onClick={() => {
+                      setActiveCategory('All Books');
+                      setSearchQuery('');
+                    }}
+                    className="mt-4 text-blue-600 hover:underline"
+                  >
+                    Reset filters
+                  </button>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>

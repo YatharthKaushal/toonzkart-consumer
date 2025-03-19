@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { FaSearch, FaMapMarkerAlt } from "react-icons/fa";
-import { Search, MapPin, ShoppingCart, User } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { FaMapMarkerAlt } from "react-icons/fa";
+import { ShoppingCart, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toonzkartLogo from "../assets/toonzkart_logo.png";
 
@@ -8,6 +8,7 @@ const Header = ({ logo }) => {
   const navigate = useNavigate();
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
@@ -28,33 +29,58 @@ const Header = ({ logo }) => {
     navigate('/profile');
   };
 
+  // Handle clicks outside of the dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    // Add event listener when dropdown is open
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // Clean up the event listener
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
   return (
     <header className="bg-white py-4 px-6 shadow-md flex items-center justify-between">
-      {/* Logo & Search Bar */}
+      {/* Logo & Location Selector */}
       <div className="flex items-center space-x-6">
         {/* Logo */}
         <Link to="/">
           <img src={toonzkartLogo} alt="ToonzKart Logo" className="h-14 w-auto" />
         </Link>
         
-        {/* Search Bar */}
-        <div className="flex items-center bg-gray-200 rounded-lg px-4 py-3">
-          <FaMapMarkerAlt className="text-gray-500 mr-2 text-lg" />
-          <select className="bg-transparent focus:outline-none text-gray-700 font-medium">
-            <option>Indore</option>
-            <option>New York</option>
-            <option>Los Angeles</option>
-            <option>Chicago</option>
-            <option>Delhi</option>
-            <option>Mumbai</option>
-          </select>
-          <div className="h-6 w-px bg-gray-400 mx-3"></div>
-          <input
-            type="text"
-            placeholder="Search for products, subjects..."
-            className="bg-transparent focus:outline-none w-100 text-gray-700"
-          />
-          <FaSearch className="text-gray-500 ml-3 text-lg" />
+        {/* Location Selector - Only Indore */}
+        <div className="relative" ref={dropdownRef}>
+          <div className="flex items-center bg-gray-200 rounded-lg px-4 py-3 cursor-pointer" onClick={toggleDropdown}>
+            <FaMapMarkerAlt className="text-gray-500 mr-2 text-lg" />
+            <span className="text-gray-700 font-medium">Indore</span>
+          </div>
+          
+          {/* Dropdown with expansion message */}
+          {isDropdownOpen && (
+            <div className="absolute z-10 mt-1 w-64 bg-white rounded-md shadow-lg py-1 border border-gray-200">
+              <div className="px-4 py-2 border-b border-gray-100">
+                <div className="font-medium text-gray-700">Indore</div>
+                <div className="text-xs text-gray-500 mt-1">Current service area</div>
+              </div>
+              <div className="px-4 py-3 bg-blue-50 border-l-4 border-blue-500">
+                <div className="text-sm font-semibold text-blue-700">
+                  Expanding to other cities soon!
+                </div>
+                <div className="text-xs text-blue-600 mt-1">
+                  Stay tuned for updates
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
