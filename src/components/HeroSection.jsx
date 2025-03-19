@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toonzKartLogo from '../assets/toonzkart_logo.png';
-import { FaMapMarkerAlt, FaChevronDown, FaSearch, FaBars, FaTimes } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaChevronDown, FaSearch, FaBars, FaTimes, FaBook, FaTimes as FaClose } from 'react-icons/fa';
 
 const HeroSection = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [books, setBooks] = useState([]);
+  const [filteredBooks, setFilteredBooks] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchRef = useRef(null);
 
   // Check login status from localStorage (or however you track auth)
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -13,6 +19,74 @@ const HeroSection = () => {
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
+
+  // Fetch book names when the component mounts
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const response = await fetch('https://backend-lzb7.onrender.com/api/books/book-names');
+        const data = await response.json();
+        setBooks(data);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+      }
+    };
+
+    fetchBooks();
+  }, []);
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    if (value.trim()) {
+      const filtered = books.filter(book => 
+        book.title.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredBooks(filtered);
+    } else {
+      setFilteredBooks([]);
+    }
+  };
+
+  // Handle search input focus
+  const handleSearchFocus = () => {
+    setIsSearchFocused(true);
+    setIsLoading(true);
+    // Simulate loading time
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+  };
+  
+  // Close search dropdown with Escape key
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape') {
+        setIsSearchFocused(false);
+      }
+    };
+    
+    document.addEventListener('keydown', handleEscKey);
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, []);
+
+  // Handle click outside search dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsSearchFocused(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const navItems = [
     { name: 'Home', path: '/' },
@@ -161,26 +235,101 @@ const HeroSection = () => {
             Books, stationery, school supplies and more — all in one place
           </p>
 
-          {/* Search Bar */}
-          <div className="flex justify-center items-center w-full sm:w-4/5 lg:w-3/4 mx-auto bg-white rounded-full shadow px-3 py-1 border border-gray-300">
-            <div className="flex items-center border-r border-gray-300 pl-4 pr-3">
-              <FaMapMarkerAlt className="text-red-500" />
-              <select className="focus:outline-none bg-transparent cursor-pointer pl-2 pr-1 appearance-none text-gray-700">
-                <option>Indore</option>
-                <option>New York</option>
-                <option>London</option>
-                <option>Tokyo</option>
-              </select>
-              <FaChevronDown className="text-gray-500 ml-1" />
+          {/* Search Bar with Dropdown */}
+          <div className="relative w-full sm:w-4/5 lg:w-3/4 mx-auto" ref={searchRef}>
+            <div className="flex justify-center items-center w-full bg-white rounded-full shadow px-3 py-1 border border-gray-300">
+              <div className="flex items-center border-r border-gray-300 pl-4 pr-3">
+                <FaMapMarkerAlt className="text-red-500" />
+                <select className="focus:outline-none bg-transparent cursor-pointer pl-2 pr-1 appearance-none text-gray-700">
+                  <option>Indore</option>
+                  <option>New York</option>
+                  <option>London</option>
+                  <option>Tokyo</option>
+                </select>
+                <FaChevronDown className="text-gray-500 ml-1" />
+              </div>
+              <div className="relative flex-grow flex items-center">
+                <input
+                  type="text"
+                  className="w-full focus:outline-none pl-4 py-2 text-base md:text-lg"
+                  placeholder="Search for books, authors, or genres"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  onFocus={handleSearchFocus}
+                />
+                {searchTerm && (
+                  <button 
+                    onClick={() => {
+                      setSearchTerm('');
+                      setFilteredBooks([]);
+                    }}
+                    className="absolute right-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <FaClose size={16} />
+                  </button>
+                )}
+              </div>
+              <button className="p-2 text-blue-900 hover:text-blue-700 transition-colors">
+                <FaSearch className="text-lg" />
+              </button>
             </div>
-            <input
-              type="text"
-              className="flex-grow focus:outline-none pl-4 py-2 text-base md:text-lg"
-              placeholder="Search for books, authors, or genres"
-            />
-            <button className="p-2 text-blue-900">
-              <FaSearch className="text-lg" />
-            </button>
+
+            {/* Search Results Dropdown */}
+            {isSearchFocused && (
+              <div className="absolute z-10 w-full mt-2 bg-white shadow-xl rounded-lg max-h-80 overflow-y-auto text-left border border-gray-200">
+                <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-2 text-sm font-medium text-gray-600">
+                  {searchTerm ? 'Search Results' : 'Recent Books'}
+                </div>
+                
+                {isLoading ? (
+                  /* Shimmering Loader */
+                  <div className="p-4">
+                    {[1, 2, 3, 4, 5].map((item) => (
+                      <div key={item} className="animate-pulse flex items-center py-3">
+                        <div className="h-4 bg-gray-200 rounded w-1/6 mr-3"></div>
+                        <div className="h-5 bg-gray-200 rounded w-2/3"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    {searchTerm && filteredBooks.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center p-8 text-gray-500">
+                        <FaSearch className="text-4xl mb-2 text-gray-300" />
+                        <p className="text-center">No books found matching "{searchTerm}"</p>
+                        <p className="text-sm text-gray-400 mt-1">Try a different search term</p>
+                      </div>
+                    ) : (
+                      <ul className="py-1">
+                        {filteredBooks.map((book) => (
+                          <li 
+                            key={book._id} 
+                            className="px-4 py-3 hover:bg-blue-50 cursor-pointer transition duration-150 flex items-center"
+                            onClick={() => {
+                              // Handle book selection (e.g., navigate to book page)
+                              navigate(`/book/${book._id}`);
+                              setIsSearchFocused(false);
+                            }}
+                          >
+                            <div className="bg-blue-100 text-blue-800 h-8 w-8 rounded-full flex items-center justify-center mr-3">
+                              <FaSearch className="text-xs" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-800">{book.title}</p>
+                              <p className="text-xs text-gray-500">Book ID: {book._id.substring(0, 8)}...</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                )}
+                
+                <div className="border-t border-gray-200 px-4 py-2 bg-gray-50 text-xs text-center text-gray-500">
+                  Press ESC to close or click outside
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
