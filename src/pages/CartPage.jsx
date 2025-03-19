@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import toonzkartLogo from "../assets/toonzkart_logo.png";
 
-const CartPage = ({ storedCartItems, storedQuantities }) => {
+const CartPage = () => {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [quantities, setQuantities] = useState({});
@@ -12,50 +12,143 @@ const CartPage = ({ storedCartItems, storedQuantities }) => {
   const [promoApplied, setPromoApplied] = useState(false);
   const [deliveryOption, setDeliveryOption] = useState('standard');
   const [paymentMethod, setPaymentMethod] = useState('card');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Simulate loading cart items from localStorage or context
+  // Fetch cart items from API
   useEffect(() => {
-    // If props are provided, use them
-    if (storedCartItems && storedCartItems.length > 0) {
-      setCartItems(storedCartItems);
-      if (storedQuantities) {
-        setQuantities(storedQuantities);
-      }
-    } else {
-      // Fallback to sample data for demonstration
-      const sampleCartItems = [
-        { id: 1, title: "Mathematics Grade 6", author: "NCERT Publication", price: 175, publisher: "NCERT", category: "School Books" },
-        { id: 7, title: "Physics Grade 12", author: "HC Verma", price: 425, publisher: "Bharti Bhawan", category: "School Books" },
-        { id: 13, title: "The Midnight Library", author: "Matt Haig", price: 350, publisher: "Penguin Random House", category: "Fiction" }
-      ];
-      
-      const sampleQuantities = {
-        1: 2,  // 2 copies of Mathematics Grade 6
-        7: 1,  // 1 copy of Physics Grade 12
-        13: 1  // 1 copy of The Midnight Library
-      };
-      
-      setCartItems(sampleCartItems);
-      setQuantities(sampleQuantities);
-    }
-  }, [storedCartItems, storedQuantities]);
+    const fetchCartItems = async () => {
+      try {
+        setLoading(true);
+        
+        // Get the token from localStorage or wherever you store it
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          throw new Error('Authentication required. Please log in.');
+        }
 
-  const updateQuantity = (itemId, change) => {
-    const currentQty = quantities[itemId] || 0;
-    const newQty = Math.max(1, currentQty + change);
-    
-    setQuantities({
-      ...quantities,
-      [itemId]: newQty
-    });
+        const response = await fetch('https://backend-lzb7.onrender.com/api/cart', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        console.log(response);
+
+        if (!response.ok) {
+          throw new Error(`Error fetching cart: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        
+        // Transform the cart data to match the component's expected format
+        const transformedCartItems = data.items.map(item => ({
+          id: item.bookId._id,
+          title: item.bookId.title,
+          author: item.bookId.author,
+          price: item.bookId.price,
+          publisher: item.bookId.publisher,
+          category: item.bookId.category,
+          image: item.bookId.image,
+          originalPrice: item.bookId.originalPrice,
+          discount: item.bookId.discount
+        }));
+
+        // Create quantities object from the API response
+        const newQuantities = {};
+        data.items.forEach(item => {
+          newQuantities[item.bookId._id] = item.quantity;
+        });
+
+        setCartItems(transformedCartItems);
+        setQuantities(newQuantities);
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to fetch cart items:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchCartItems();
+  }, []);
+
+  const updateQuantity = async (itemId, change) => {
+    try {
+      const currentQty = quantities[itemId] || 0;
+      const newQty = Math.max(1, currentQty + change);
+      
+      // Get the token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Authentication required. Please log in.');
+      }
+
+      // Update quantity on the server
+      const response = await fetch(`https://backend-lzb7.onrender.com/api/cart/update`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          bookId: itemId,
+          quantity: newQty
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error updating quantity: ${response.statusText}`);
+      }
+
+      // Update local state if server update is successful
+      setQuantities({
+        ...quantities,
+        [itemId]: newQty
+      });
+    } catch (err) {
+      console.error('Failed to update quantity:', err);
+      setError(err.message);
+    }
   };
 
-  const removeItem = (itemId) => {
-    setCartItems(cartItems.filter(item => item.id !== itemId));
-    
-    const newQuantities = {...quantities};
-    delete newQuantities[itemId];
-    setQuantities(newQuantities);
+  const removeItem = async (itemId) => {
+    try {
+      // Get the token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Authentication required. Please log in.');
+      }
+
+      // Remove item from the server
+      const response = await fetch(`https://backend-lzb7.onrender.com/api/cart/remove`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          bookId: itemId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error removing item: ${response.statusText}`);
+      }
+
+      // Update local state if server update is successful
+      setCartItems(cartItems.filter(item => item.id !== itemId));
+      
+      const newQuantities = {...quantities};
+      delete newQuantities[itemId];
+      setQuantities(newQuantities);
+    } catch (err) {
+      console.error('Failed to remove item:', err);
+      setError(err.message);
+    }
   };
 
   const applyPromoCode = () => {
@@ -79,6 +172,48 @@ const CartPage = ({ storedCartItems, storedQuantities }) => {
   
   // Calculate total
   const total = subtotal - discount + deliveryCharge;
+
+  // Display loading state
+  if (loading) {
+    return (
+      <div className="w-full font-sans">
+        <div className="sticky top-0 z-50 bg-white shadow-md">
+          <Header logo={toonzkartLogo} />
+        </div>
+        <div className="max-w-6xl mx-auto p-4 font-sans">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="w-16 h-16 border-t-4 border-blue-500 border-solid rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading your cart...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Display error state
+  if (error) {
+    return (
+      <div className="w-full font-sans">
+        <div className="sticky top-0 z-50 bg-white shadow-md">
+          <Header logo={toonzkartLogo} />
+        </div>
+        <div className="max-w-6xl mx-auto p-4 font-sans">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Error: </strong>
+            <span className="block sm:inline">{error}</span>
+            <button 
+              className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              onClick={() => window.location.reload()}
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full font-sans">
@@ -123,7 +258,11 @@ const CartPage = ({ storedCartItems, storedQuantities }) => {
                     <div key={item.id} className="border-b last:border-b-0 p-4">
                       <div className="flex items-start">
                         <div className="h-24 w-20 bg-gray-100 flex-shrink-0 flex items-center justify-center rounded overflow-hidden mr-4">
-                          <div className="text-gray-400 text-center text-sm p-2">Book Cover</div>
+                          {item.image ? (
+                            <img src={`https://backend-lzb7.onrender.com${item.image}`} alt={item.title} className="object-cover h-full w-full" />
+                          ) : (
+                            <div className="text-gray-400 text-center text-sm p-2">Book Cover</div>
+                          )}
                         </div>
                         
                         <div className="flex-grow">
@@ -133,8 +272,14 @@ const CartPage = ({ storedCartItems, storedQuantities }) => {
                           
                           <div className="flex items-center justify-between mt-2">
                             <div className="flex items-center">
-                              <span className="font-bold mr-4">₹{item.price}</span>
-                              <div className="flex items-center border border-gray-300 rounded-md">
+                              <span className="font-bold mr-2">₹{item.price}</span>
+                              {item.originalPrice && item.price < item.originalPrice && (
+                                <span className="text-sm text-gray-500 line-through mr-2">₹{item.originalPrice}</span>
+                              )}
+                              {item.discount > 0 && (
+                                <span className="text-xs text-green-600">{item.discount}% off</span>
+                              )}
+                              <div className="flex items-center border border-gray-300 rounded-md ml-4">
                                 <button 
                                   onClick={() => updateQuantity(item.id, -1)}
                                   className="px-2 py-1 text-gray-600 hover:bg-gray-100"
