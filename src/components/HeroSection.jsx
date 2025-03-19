@@ -96,7 +96,7 @@ const HeroSection = () => {
   ];
 
   return (
-    <div className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-hidden">
+    <div className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] overflow-visible">
       {/* Header Section */}
       <header className="absolute top-0 left-0 w-full bg-transparent text-white py-4 md:py-6 px-4 md:px-10 z-10">
         <nav className="flex justify-between items-center">
@@ -221,8 +221,8 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-black opacity-70"></div>
 
       {/* Content Container */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-full px-4 sm:px-6 md:w-4/5 lg:w-3/5 py-5 text-center">
+      <div className="absolute inset-0 flex items-center justify-center overflow-visible">
+        <div className="w-full px-4 sm:px-6 md:w-4/5 lg:w-3/5 py-5 text-center overflow-visible">
           <img
             src={toonzKartLogo}
             alt="ToonzKart Logo"
@@ -276,7 +276,7 @@ const HeroSection = () => {
 
             {/* Search Results Dropdown */}
             {isSearchFocused && (
-              <div className="absolute z-10 w-full mt-2 bg-white shadow-xl rounded-lg max-h-80 overflow-y-auto text-left border border-gray-200">
+              <div className="absolute z-50 w-full mt-2 bg-white shadow-xl rounded-lg max-h-96 overflow-y-auto text-left border border-gray-200" style={{ maxHeight: '80vh' }}>
                 <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-2 text-sm font-medium text-gray-600">
                   {searchTerm ? 'Search Results' : 'Recent Books'}
                 </div>
