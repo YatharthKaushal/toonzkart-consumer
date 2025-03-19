@@ -106,40 +106,9 @@ const StoresPage = () => {
                 className="absolute left-4 top-3.5 text-gray-500" 
               />
             </div>
-            {/* <button 
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter size={20} className="mr-2" />
-              Filters
-            </button> */}
+            
           </div>
           
-          {/* Filters */}
-          {/* {showFilters && (
-            <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mb-6">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold">Filter Stores</h3>
-                <button onClick={() => setShowFilters(false)}>
-                  <X size={20} className="text-gray-500 hover:text-gray-700" />
-                </button>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <select 
-                  className="w-full p-2 border rounded-md"
-                  value={activeStatus}
-                  onChange={(e) => setActiveStatus(e.target.value)}
-                >
-                  {statuses.map(status => (
-                    <option key={status} value={status}>
-                      {status === 'all' ? 'All Statuses' : status}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          )} */}
           
           <div className="flex flex-wrap gap-3 mt-4">
             <span className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
