@@ -1,35 +1,37 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { ArrowLeft } from "lucide-react";
 
-const storesData = [
-  { 
-    id: 1, name: "Book Haven", image: "https://source.unsplash.com/200x150/?bookstore", 
-    location: "New York", schools: ["Greenwood High", "Ryan International"], 
-    books: [
-      { id: 1, title: "The Alchemist", author: "Paulo Coelho", image: "https://source.unsplash.com/150x200/?book" },
-      { id: 2, title: "Harry Potter", author: "J.K. Rowling", image: "https://source.unsplash.com/150x200/?magic" }
-    ]
-  },
-  { 
-    id: 2, name: "Readers' Corner", image: "https://source.unsplash.com/200x150/?library", 
-    location: "San Francisco", schools: ["Delhi Public School", "St. Xavier’s"], 
-    books: [
-      { id: 3, title: "Game of Thrones", author: "George R.R. Martin", image: "https://source.unsplash.com/150x200/?fantasy" },
-      { id: 4, title: "Inferno", author: "Dan Brown", image: "https://source.unsplash.com/150x200/?thriller" }
-    ]
-  },
-];
+const API_BASE_URL = "https://backend-lzb7.onrender.com"; // Backend API URL
 
-const StoresView = ({ selectedSchool, selectedBook, onBack }) => {
+const StoresView = ({ selectedSchool, onBack }) => {
   const navigate = useNavigate();
+  const [stores, setStores] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const filteredStores = storesData.filter(
-    (store) =>
-      (selectedSchool && store.schools.includes(selectedSchool)) ||
-      (selectedBook && store.books.some(book => book.title === selectedBook))
-  );
+  // Fetch stores based on school ID
+  useEffect(() => {
+    if (selectedSchool?._id) {
+      fetchStoresBySchool(selectedSchool._id);
+    }
+  }, [selectedSchool]);
+
+  const fetchStoresBySchool = async (schoolId) => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/stores/school/${schoolId}`);
+      setStores(response.data);
+    } catch (err) {
+      setError("Failed to fetch stores. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
@@ -43,31 +45,35 @@ const StoresView = ({ selectedSchool, selectedBook, onBack }) => {
       </button>
 
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-        {selectedSchool ? `Stores for ${selectedSchool}` : `Stores Selling "${selectedBook}"`}
+        {selectedSchool?.name ? `Stores for ${selectedSchool.name}` : "Stores"}
       </h2>
+
+      {/* Loading & Error Handling */}
+      {loading && <p className="text-gray-600 text-center">Loading stores...</p>}
+      {error && <p className="text-red-500 text-center">{error}</p>}
 
       {/* Stores Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredStores.length > 0 ? (
-          filteredStores.map((store) => (
+        {stores.length > 0 ? (
+          stores.map((store) => (
             <div
-              key={store.id}
+              key={store._id}
               className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer"
-              onClick={() => navigate(`/store/${store.id}`)}
+              onClick={() => navigate(`/store/${store._id}`)}
             >
               <img
-                src={store.image}
-                alt={store.name}
+                src={store.image || "https://via.placeholder.com/150"}
+                alt={store.storeName}
                 className="w-full h-40 object-cover rounded-md"
               />
-              <h3 className="text-lg font-semibold mt-3 text-gray-800">{store.name}</h3>
+              <h3 className="text-lg font-semibold mt-3 text-gray-800">{store.storeName}</h3>
               <p className="text-gray-600 flex items-center">
-                <FaMapMarkerAlt className="text-red-500 mr-2" /> {store.location}
+                <FaMapMarkerAlt className="text-red-500 mr-2" /> {store.address}
               </p>
             </div>
           ))
         ) : (
-          <p className="text-gray-600 text-center col-span-full">No stores available.</p>
+          !loading && <p className="text-gray-600 text-center col-span-full">No stores available.</p>
         )}
       </div>
     </div>
