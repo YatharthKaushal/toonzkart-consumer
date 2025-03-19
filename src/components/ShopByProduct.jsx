@@ -1,17 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { FaShoppingBag, FaFilter, FaSearch, FaBook, FaPen, FaShoppingCart } from "react-icons/fa";
+import { FaShoppingBag, FaFilter, FaSearch, FaBook, FaPen, FaShoppingCart, FaPencilAlt, FaEraser, FaFolder, FaQuestion, FaPlus, FaMinus } from "react-icons/fa";
 import axios from "axios";
-
-const stationeryProducts = [
-  { id: 1, name: "Notebooks", image: "https://source.unsplash.com/150x150/?notebook,stationery" },
-  { id: 2, name: "Pens & Pencils", image: "https://source.unsplash.com/150x150/?pen,pencil" },
-  { id: 3, name: "Backpacks", image: "https://source.unsplash.com/150x150/?backpack,school" },
-  { id: 4, name: "Art Supplies", image: "https://source.unsplash.com/150x150/?art,supplies" },
-  { id: 5, name: "Calculators", image: "https://source.unsplash.com/150x150/?calculator,math" },
-  { id: 6, name: "Desk Accessories", image: "https://source.unsplash.com/150x150/?desk,accessory" },
-  { id: 7, name: "Sports Equipment", image: "https://source.unsplash.com/150x150/?sports,equipment" },
-  { id: 8, name: "Erasers & Correction", image: "https://source.unsplash.com/150x150/?eraser,correction" },
-];
 
 const API_BASE_URL = "https://backend-lzb7.onrender.com";
 
@@ -19,7 +8,9 @@ const ShopByProduct = () => {
   const [activeTab, setActiveTab] = useState("books");
   const [search, setSearch] = useState("");
   const [books, setBooks] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [stationery, setStationery] = useState([]);
+  const [loadingBooks, setLoadingBooks] = useState(false);
+  const [loadingStationery, setLoadingStationery] = useState(false);
   const [error, setError] = useState("");
   const [cartItems, setCartItems] = useState({});
 
@@ -27,7 +18,7 @@ const ShopByProduct = () => {
   useEffect(() => {
     const fetchBooks = async () => {
       if (activeTab === "books") {
-        setLoading(true);
+        setLoadingBooks(true);
         setError("");
         try {
           const response = await axios.get(`${API_BASE_URL}/api/books`);
@@ -37,7 +28,7 @@ const ShopByProduct = () => {
           console.error("Error fetching books:", err);
           setError("Failed to load books. Please try again.");
         } finally {
-          setLoading(false);
+          setLoadingBooks(false);
         }
       }
     };
@@ -45,9 +36,34 @@ const ShopByProduct = () => {
     fetchBooks();
   }, [activeTab]);
 
+  // Fetch stationery from API
+  useEffect(() => {
+    const fetchStationery = async () => {
+      if (activeTab === "stationery") {
+        setLoadingStationery(true);
+        setError("");
+        try {
+          const response = await axios.get(`${API_BASE_URL}/api/stationery`);
+          console.log("Stationery API Response:", response.data);
+          setStationery(response.data);
+        } catch (err) {
+          console.error("Error fetching stationery:", err);
+          setError("Failed to load stationery items. Please try again.");
+        } finally {
+          setLoadingStationery(false);
+        }
+      }
+    };
+
+    fetchStationery();
+  }, [activeTab]);
+
   // Filter products based on search
-  const filteredStationery = stationeryProducts.filter((product) =>
-    product.name.toLowerCase().includes(search.toLowerCase())
+  const filteredStationery = stationery.filter((product) =>
+    (product.name && product.name.toLowerCase().includes(search.toLowerCase())) ||
+    (product.category && product.category.toLowerCase().includes(search.toLowerCase())) ||
+    (product.brand && product.brand.toLowerCase().includes(search.toLowerCase())) ||
+    (product.description && product.description.toLowerCase().includes(search.toLowerCase()))
   );
 
   const filteredBooks = books.filter(
@@ -58,12 +74,27 @@ const ShopByProduct = () => {
   );
 
   // Handle adding to cart
-  const addToCart = (product, isBook = false) => {
+  const addToCart = (productId) => {
     setCartItems(prev => {
-      const id = isBook ? product._id : product.id;
       return {
         ...prev,
-        [id]: (prev[id] || 0) + 1
+        [productId]: (prev[productId] || 0) + 1
+      };
+    });
+  };
+
+  // Handle removing from cart
+  const removeFromCart = (productId) => {
+    setCartItems(prev => {
+      const currentQuantity = prev[productId] || 0;
+      if (currentQuantity <= 1) {
+        const newCart = { ...prev };
+        delete newCart[productId];
+        return newCart;
+      }
+      return {
+        ...prev,
+        [productId]: currentQuantity - 1
       };
     });
   };
@@ -71,6 +102,33 @@ const ShopByProduct = () => {
   // Format price with rupee symbol
   const formatPrice = (price) => {
     return `₹${price}`;
+  };
+
+  // Get category icon
+  const getCategoryIcon = (category) => {
+    switch (category) {
+      case "Pens":
+        return <FaPen className="text-blue-500" />;
+      case "Pencils":
+        return <FaPencilAlt className="text-gray-600" />;
+      case "Notebooks":
+        return <FaBook className="text-green-500" />;
+      case "Erasers":
+        return <FaEraser className="text-red-400" />;
+      case "Markers":
+        return <FaPen className="text-purple-500" />;
+      case "Files & Folders":
+        return <FaFolder className="text-yellow-500" />;
+      case "Other":
+      default:
+        return <FaQuestion className="text-gray-400" />;
+    }
+  };
+
+  // Loading function
+  const isLoading = () => {
+    return (activeTab === "books" && loadingBooks) || 
+           (activeTab === "stationery" && loadingStationery);
   };
 
   return (
@@ -120,7 +178,7 @@ const ShopByProduct = () => {
       </div>
 
       {/* Loading Message */}
-      {loading && (
+      {isLoading() && (
         <div className="flex justify-center items-center py-10">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           <span className="ml-3 text-gray-600">Loading...</span>
@@ -135,7 +193,7 @@ const ShopByProduct = () => {
       )}
 
       {/* Books Tab Content */}
-      {activeTab === "books" && !loading && (
+      {activeTab === "books" && !loadingBooks && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredBooks.length > 0 ? (
             filteredBooks.map((book) => (
@@ -180,17 +238,7 @@ const ShopByProduct = () => {
                     )}
                   </div>
                   
-                  <button
-                    onClick={() => addToCart(book, true)}
-                    disabled={book.status === "Out of Stock"}
-                    className={`p-2 rounded-full ${
-                      book.status === "Out of Stock"
-                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        : "bg-blue-500 text-white hover:bg-blue-600"
-                    }`}
-                  >
-                    <FaShoppingCart />
-                  </button>
+                  {/* No cart button for books as per requirement */}
                 </div>
                 
                 {cartItems[book._id] && (
@@ -217,36 +265,80 @@ const ShopByProduct = () => {
       )}
 
       {/* Stationery Tab Content */}
-      {activeTab === "stationery" && (
+      {activeTab === "stationery" && !loadingStationery && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredStationery.length > 0 ? (
             filteredStationery.map((product) => (
               <div
-                key={product.id}
+                key={product._id}
                 className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1"
               >
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-48 object-cover rounded-md mb-3"
-                />
-                <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <FaShoppingBag className="text-blue-500" /> {product.name}
-                </h3>
+                <div className="h-48 mb-3 bg-gray-100 rounded-md flex items-center justify-center">
+                  {getCategoryIcon(product.category)}
+                  <span className="ml-2 text-gray-500">{product.category || "Stationery"}</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 line-clamp-1">{product.name}</h3>
+                {product.brand && (
+                  <p className="text-gray-600 text-sm mb-1">Brand: {product.brand}</p>
+                )}
+                {product.description && (
+                  <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description}</p>
+                )}
                 
-                <div className="flex justify-between items-center mt-4">
-                  <span className="font-bold text-gray-900">₹199</span>
-                  <button
-                    onClick={() => addToCart(product)}
-                    className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600"
-                  >
-                    <FaShoppingCart />
-                  </button>
+                <div className="flex justify-between items-center mt-auto">
+                  <div>
+                    <span className="font-bold text-gray-900">{formatPrice(product.price)}</span>
+                    {product.discount > 0 && (
+                      <span className="ml-2 text-xs text-green-600 font-medium">
+                        {product.discount}% OFF
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Changed cart button for stationery */}
+                  {!cartItems[product._id] ? (
+                    <button
+                      onClick={() => addToCart(product._id)}
+                      disabled={product.status === "Out of Stock"}
+                      className={`flex items-center gap-1 px-3 py-1 rounded-md ${
+                        product.status === "Out of Stock"
+                          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          : "bg-blue-500 text-white hover:bg-blue-600"
+                      }`}
+                    >
+                      <FaShoppingCart className="text-sm" />
+                      <span>Add to Cart</span>
+                    </button>
+                  ) : (
+                    <div className="flex items-center border border-gray-200 rounded-md">
+                      <button
+                        onClick={() => removeFromCart(product._id)}
+                        className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-l-md"
+                      >
+                        <FaMinus size={12} />
+                      </button>
+                      <span className="px-3 py-1 text-center min-w-8">
+                        {cartItems[product._id]}
+                      </span>
+                      <button
+                        onClick={() => addToCart(product._id)}
+                        className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-md"
+                      >
+                        <FaPlus size={12} />
+                      </button>
+                    </div>
+                  )}
                 </div>
                 
-                {cartItems[product.id] && (
-                  <div className="mt-2 text-sm text-green-600 font-semibold">
-                    {cartItems[product.id]} in cart
+                {product.status === "Low Stock" && (
+                  <div className="mt-2 text-xs text-amber-600 font-medium">
+                    Only {product.stock} left!
+                  </div>
+                )}
+                
+                {product.status === "Out of Stock" && (
+                  <div className="mt-2 text-xs text-red-600 font-medium">
+                    Out of stock
                   </div>
                 )}
               </div>
