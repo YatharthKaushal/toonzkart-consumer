@@ -56,10 +56,10 @@ const RetailerPartners = () => {
               
               <div className="h-0.5 w-16 bg-blue-200 group-hover:bg-blue-300 transition-all duration-300 mb-3"></div>
               
-              {/* Visit Button */}
+              {/* Visit Button
               <button className="flex items-center text-sm font-medium text-blue-600 group-hover:text-white mt-3">
                 Visit Store <FaChevronRight className="ml-1 text-xs transition-transform group-hover:translate-x-1" />
-              </button>
+              </button> */}
               
               {/* Decorative Store Icon */}
               <div className="absolute top-4 right-4 text-blue-200 opacity-20 group-hover:opacity-10 group-hover:text-white">
@@ -68,13 +68,6 @@ const RetailerPartners = () => {
             </div>
           ))}
         </div>
-      </div>
-      
-      {/* Bottom action */}
-      <div className="text-center mt-12">
-        <button className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-full shadow-lg hover:shadow-xl transition-all duration-300 inline-flex items-center">
-          View All Partners <FaChevronRight className="ml-2" />
-        </button>
       </div>
     </section>
   );

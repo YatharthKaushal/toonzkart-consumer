@@ -218,17 +218,20 @@ const ShopByProduct = () => {
                 className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer"
                 onClick={() => handleBookClick(book)}
               >
+                {/* Modified image container to properly display book covers */}
                 <div className="relative h-48 mb-3 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
                   {book.image ? (
-                    <img
-                      src={`${API_BASE_URL}${book.image}`}
-                      alt={book.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "https://via.placeholder.com/150x200?text=No+Image";
-                      }}
-                    />
+                    <div className="w-full h-full flex items-center justify-center p-2">
+                      <img
+                        src={`${book.image}`}
+                        alt={book.title}
+                        className="max-h-full max-w-full object-contain"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://via.placeholder.com/150x200?text=No+Image";
+                        }}
+                      />
+                    </div>
                   ) : (
                     <div className="text-center text-gray-400 p-4">
                       <FaBook size={30} className="mx-auto mb-2" />
@@ -294,9 +297,25 @@ const ShopByProduct = () => {
                 key={product._id}
                 className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1"
               >
-                <div className="h-48 mb-3 bg-gray-100 rounded-md flex items-center justify-center">
-                  {getCategoryIcon(product.category)}
-                  <span className="ml-2 text-gray-500">{product.category || "Stationery"}</span>
+                <div className="h-48 mb-3 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
+                  {product.image ? (
+                    <div className="w-full h-full flex items-center justify-center p-2">
+                      <img
+                        src={`${product.image}`}
+                        alt={product.name}
+                        className="max-h-full max-w-full object-contain"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://via.placeholder.com/150x200?text=No+Image";
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center p-4">
+                      {getCategoryIcon(product.category)}
+                      <span className="mt-2 text-gray-500">{product.category || "Stationery"}</span>
+                    </div>
+                  )}
                 </div>
                 <h3 className="text-lg font-semibold text-gray-800 line-clamp-1">{product.name}</h3>
                 {product.brand && (
