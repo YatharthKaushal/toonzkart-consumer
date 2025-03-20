@@ -1,16 +1,16 @@
 import React from "react";
 
 const affiliatedSchools = [
-  { name: "Springfield High", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQi1hetCzzNp7VU3K4NJ0tu0vCV_pGj-3HV9g&s" },
-  { name: "Greenwood Academy", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtcISCpzTdDOSUKEZNsrMmtLjm3PT11ERmJg&s" },
-  { name: "Oakridge International", imgSrc: "https://via.placeholder.com/150" },
-  { name: "St. Xavier's School", imgSrc: "https://stxaviersjagdalpur.in/wp-content/uploads/2020/02/24x24-inch-logo-1.png" },
-  { name: "Bright Future School", imgSrc: "https://content3.jdmagicbox.com/comp/siliguri/q4/9999px353.x353.240206224148.y4q4/catalogue/bright-future-school-loknath-nagar-road-siliguri-english-medium-schools-c4wbp63ef5.jpg" },
-  { name: "Sunshine Public School", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYa8rpBedi-426XTDh2k7seerEPBZlEgDbeQ&s" },
-  { name: "Cambridge Academy", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlhfyUjm3sfww9wapTLLMgzXUPOdVHQmtkyg&s" },
-  { name: "Heritage Global", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8Rm1rB1dgkXTO2JiVei7C3a_GiMYjH76ZAg&s" },
-  { name: "The Millennium School", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTifyQ02adLE8x0JfRYIE1SQ61u8uOxIZO-g&s" },
-  { name: "Royal International", imgSrc: "https://www.risindia.co.in/wp-content/uploads/2022/12/cropped-logo.png" },
+  { name: "St. Raphael's Higher Secondary School", imgSrc: "" },
+  { name: "The Emerald Heights International School", imgSrc: "" },
+  { name: "Agarwal Public School - Indore", imgSrc: "" },
+  { name: "Chameli Devi Public School", imgSrc: "" },
+  { name: "Medi-Caps International School", imgSrc: "" },
+  { name: "Delhi Public School Indore", imgSrc: "" },
+  { name: "SICA School, Nipaniya", imgSrc: "" },
+  { name: "Delhi International School", imgSrc: "" },
+  { name: "Sri Sathya Sai Vidya Vihar", imgSrc: "" },
+  { name: "The Shishukunj International School", imgSrc: "" },
 ];
 
 const AffiliatedPartners = () => {
@@ -29,7 +29,7 @@ const AffiliatedPartners = () => {
         {affiliatedSchools.map((school, index) => (
           <div key={index} className="flex flex-col items-center group">
             {/* Circular Image with hover effect */}
-            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-gray-300 shadow-lg transition-transform duration-300 ">
+            <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-gray-300 shadow-lg transition-transform duration-300 group-hover:scale-105 group-hover:border-blue-500">
               <img
                 src={school.imgSrc}
                 alt={school.name}
@@ -37,7 +37,7 @@ const AffiliatedPartners = () => {
               />
             </div>
             {/* School Name */}
-            <p className="text-gray-800 font-semibold mt-3 text-center transition-colors duration-300">{school.name}</p>
+            <p className="text-gray-800 font-semibold mt-3 text-center transition-colors duration-300 group-hover:text-blue-600">{school.name}</p>
           </div>
         ))}
       </div>

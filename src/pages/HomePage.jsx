@@ -6,6 +6,7 @@ import Stores from '../components/Stores';
 import WhatWeAre from '../components/WhatWeAre';
 import AffiliatedPartners from '../components/AffiliatedPartners';
 import Footer from '../components/Footer';
+import RetailerPartners from '../components/RetailerPartners';
 
 const HomePage = () => {
   return (
@@ -15,6 +16,7 @@ const HomePage = () => {
       <AboutUs />
       <Stores />
       <WhatWeAre />
+      <RetailerPartners></RetailerPartners>
       <AffiliatedPartners />
       <Footer />
     </div>

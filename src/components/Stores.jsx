@@ -4,25 +4,25 @@ const collections = [
   {
     title: "Exclusive School Books Shops",
     subtitle: "19 Places",
-    image: "https://b.zmtcdn.com/data/collections/1861a2246de9e8cc96569b5dc4c3405c_1685696585.jpg?output-format=webp",
+    image: "https://res.cloudinary.com/dco22xvey/image/upload/v1742477694/1_gbvnfh.png",
     link: "/stores",
   },
   {
     title: "Stationery Stores",
     subtitle: "8 Places",
-    image: "https://b.zmtcdn.com/data/collections/d470bac0f29786437a262c022cae76d5_1739519474.png?output-format=webp",
+    image: "https://res.cloudinary.com/dco22xvey/image/upload/v1742477728/10_hvjvip.png",
     link: "/stores",
   },
   {
     title: "Sports and Toys",
     subtitle: "16 Places",
-    image: "https://b.zmtcdn.com/data/collections/aaccef7199995c73258750f61c1961f0_1685696893.jpg?output-format=webp",
+    image: "https://res.cloudinary.com/dco22xvey/image/upload/v1742477709/6_ocn3ua.png",
     link: "/stores",
   },
   {
     title: "All India Delivery Stores",
     subtitle: "25 Places",
-    image: "https://b.zmtcdn.com/data/collections/3bb6a60fc5e06a9d88541a6c8895ba8a_1731665701.png?output-format=webp",
+    image: "https://res.cloudinary.com/dco22xvey/image/upload/v1742477718/13_lxqjea.png",
     link: "/stores",
   },
 ];
