@@ -7,6 +7,7 @@ import WhatWeAre from '../components/WhatWeAre';
 import AffiliatedPartners from '../components/AffiliatedPartners';
 import Footer from '../components/Footer';
 import RetailerPartners from '../components/RetailerPartners';
+import WhatsAppButton from '../components/WhatsAppButton';
 
 const HomePage = () => {
   return (
@@ -16,9 +17,10 @@ const HomePage = () => {
       <AboutUs />
       <Stores />
       <WhatWeAre />
-      <RetailerPartners></RetailerPartners>
+      <RetailerPartners />
       <AffiliatedPartners />
       <Footer />
+      <WhatsAppButton />
     </div>
   );
 };

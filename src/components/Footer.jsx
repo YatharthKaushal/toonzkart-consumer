@@ -58,7 +58,7 @@ const Footer = () => {
           <p>© 2025 ToonzKart. All rights reserved.</p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <a href="#" className="hover:text-gray-200"><i className="fab fa-facebook text-lg"></i></a>
-            <a href="#" className="hover:text-gray-200"><i className="fab fa-instagram text-lg"></i></a>
+            <a href="https://www.instagram.com/toonzkart_official?igsh=OHZkOHRlMHZzY2dx" className="hover:text-gray-200"><i className="fab fa-instagram text-lg"></i></a>
             <a href="#" className="hover:text-gray-200"><i className="fab fa-twitter text-lg"></i></a>
             <a href="#" className="hover:text-gray-200"><i className="fab fa-linkedin text-lg"></i></a>
           </div>
