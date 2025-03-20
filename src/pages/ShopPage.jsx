@@ -1,18 +1,35 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import ShopBySchool from "../components/ShopBySchool";
 import ShopByProduct from "../components/ShopByProduct";
 import ShopByDemand from "../components/ShopByDemand";
+import StoresViewBooks from "../components/StoresViewBooks";
 import Header from "../components/Header";
 import toonzkartLogo from "../assets/toonzkart_logo.png";
 
 const ShopPage = () => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("school"); // Default tab
+  const [selectedBook, setSelectedBook] = useState(null);
 
   // Add useEffect to fetch and log the user token when component mounts
   useEffect(() => {
     const userToken = localStorage.getItem('token');
     console.log('User Token:', userToken);
   }, []);
+
+  // Check if there's a selected book in the location state
+  useEffect(() => {
+    if (location.state && location.state.selectedBook) {
+      setSelectedBook(location.state.selectedBook);
+      setActiveTab("product"); // Automatically switch to product tab
+    }
+  }, [location.state]);
+
+  // Handler for when user clicks back from StoresViewBooks
+  const handleBackFromStores = () => {
+    setSelectedBook(null);
+  };
 
   return (
     <div className="w-full min-h-screen bg-gray-100">
@@ -27,7 +44,10 @@ const ShopPage = () => {
               ? "text-blue-600 border-b-2 border-blue-600"
               : "text-gray-600"
           }`}
-          onClick={() => setActiveTab("school")}
+          onClick={() => {
+            setActiveTab("school");
+            setSelectedBook(null); // Reset selected book when switching tabs
+          }}
         >
           <span className="text-lg mb-1 sm:mb-0 sm:mr-1">🏫</span>
           <span className="whitespace-nowrap">
@@ -40,7 +60,10 @@ const ShopPage = () => {
               ? "text-blue-600 border-b-2 border-blue-600"
               : "text-gray-600"
           }`}
-          onClick={() => setActiveTab("product")}
+          onClick={() => {
+            setActiveTab("product");
+            setSelectedBook(null); // Reset selected book when switching tabs
+          }}
         >
           <span className="text-lg mb-1 sm:mb-0 sm:mr-1">🛍️</span>
           <span className="whitespace-nowrap">
@@ -53,7 +76,10 @@ const ShopPage = () => {
               ? "text-blue-600 border-b-2 border-blue-600"
               : "text-orange-600"
           } group`}
-          onClick={() => setActiveTab("demand")}
+          onClick={() => {
+            setActiveTab("demand");
+            setSelectedBook(null); // Reset selected book when switching tabs
+          }}
         >
           {/* Hot badge - repositioned for mobile */}
           <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white text-[8px] sm:text-xs px-1 sm:px-2 py-0.5 sm:py-1 rounded-full animate-pulse">
@@ -81,7 +107,13 @@ const ShopPage = () => {
       {/* Content Section */}
       <div className="w-full mx-auto bg-white shadow">
         {activeTab === "school" && <ShopBySchool />}
-        {activeTab === "product" && <ShopByProduct />}
+        {activeTab === "product" && (
+          selectedBook ? (
+            <StoresViewBooks selectedBook={selectedBook} onBack={handleBackFromStores} />
+          ) : (
+            <ShopByProduct onBookSelect={setSelectedBook} />
+          )
+        )}
         {activeTab === "demand" && (
           <>
             {/* Special banner above the demand component - more compact for mobile */}

@@ -2,11 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaShoppingBag, FaFilter, FaSearch, FaBook, FaPen, FaShoppingCart, FaPencilAlt, FaEraser, FaFolder, FaQuestion, FaPlus, FaMinus } from "react-icons/fa";
 import axios from "axios";
-import StoresViewBooks from "./StoresViewBooks";
 
 const API_BASE_URL = "https://backend-lzb7.onrender.com";
 
-const ShopByProduct = () => {
+const ShopByProduct = ({ onBookSelect }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("books");
   const [search, setSearch] = useState("");
@@ -16,7 +15,6 @@ const ShopByProduct = () => {
   const [loadingStationery, setLoadingStationery] = useState(false);
   const [error, setError] = useState("");
   const [cartItems, setCartItems] = useState({});
-  const [selectedBook, setSelectedBook] = useState(null);
 
   // Fetch books from API
   useEffect(() => {
@@ -105,7 +103,9 @@ const ShopByProduct = () => {
 
   // Handle clicking on a book to view stores
   const handleBookClick = (book) => {
-    setSelectedBook(book);
+    if (onBookSelect) {
+      onBookSelect(book);
+    }
   };
 
   // Format price with rupee symbol
@@ -139,13 +139,6 @@ const ShopByProduct = () => {
     return (activeTab === "books" && loadingBooks) || 
            (activeTab === "stationery" && loadingStationery);
   };
-  
-  if (selectedBook) {
-    return <StoresViewBooks 
-      selectedBook={selectedBook} 
-      onBack={() => setSelectedBook(null)} 
-    />;
-  }
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">

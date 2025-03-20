@@ -88,6 +88,17 @@ const HeroSection = () => {
     };
   }, []);
 
+  // Handle book selection from search dropdown
+  const handleBookSelect = (book) => {
+    // Navigate to shop page with the selected book
+    navigate('/shop', { 
+      state: { 
+        selectedBook: book 
+      } 
+    });
+    setIsSearchFocused(false);
+  };
+
   const navItems = [
     { name: 'Home', path: '/' },
     { name: 'Order Now', path: '/shop' },
@@ -305,14 +316,10 @@ const HeroSection = () => {
                           <li 
                             key={book._id} 
                             className="px-4 py-3 hover:bg-blue-50 cursor-pointer transition duration-150 flex items-center"
-                            onClick={() => {
-                              // Handle book selection (e.g., navigate to book page)
-                              navigate(`/book/${book._id}`);
-                              setIsSearchFocused(false);
-                            }}
+                            onClick={() => handleBookSelect(book)}
                           >
                             <div className="bg-blue-100 text-blue-800 h-8 w-8 rounded-full flex items-center justify-center mr-3">
-                              <FaSearch className="text-xs" />
+                              <FaBook className="text-xs" />
                             </div>
                             <div>
                               <p className="font-medium text-gray-800">{book.title}</p>
