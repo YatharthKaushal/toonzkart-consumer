@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { FaShoppingBag, FaFilter, FaSearch, FaBook, FaPen, FaShoppingCart, FaPencilAlt, FaEraser, FaFolder, FaQuestion, FaPlus, FaMinus } from "react-icons/fa";
 import axios from "axios";
+import StoresViewBooks from "./StoresViewBooks";
 
 const API_BASE_URL = "https://backend-lzb7.onrender.com";
 
 const ShopByProduct = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("books");
   const [search, setSearch] = useState("");
   const [books, setBooks] = useState([]);
@@ -13,6 +16,7 @@ const ShopByProduct = () => {
   const [loadingStationery, setLoadingStationery] = useState(false);
   const [error, setError] = useState("");
   const [cartItems, setCartItems] = useState({});
+  const [selectedBook, setSelectedBook] = useState(null);
 
   // Fetch books from API
   useEffect(() => {
@@ -99,6 +103,11 @@ const ShopByProduct = () => {
     });
   };
 
+  // Handle clicking on a book to view stores
+  const handleBookClick = (book) => {
+    setSelectedBook(book);
+  };
+
   // Format price with rupee symbol
   const formatPrice = (price) => {
     return `₹${price}`;
@@ -130,6 +139,13 @@ const ShopByProduct = () => {
     return (activeTab === "books" && loadingBooks) || 
            (activeTab === "stationery" && loadingStationery);
   };
+  
+  if (selectedBook) {
+    return <StoresViewBooks 
+      selectedBook={selectedBook} 
+      onBack={() => setSelectedBook(null)} 
+    />;
+  }
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
@@ -199,7 +215,8 @@ const ShopByProduct = () => {
             filteredBooks.map((book) => (
               <div
                 key={book._id}
-                className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1"
+                className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer"
+                onClick={() => handleBookClick(book)}
               >
                 <div className="relative h-48 mb-3 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
                   {book.image ? (
@@ -238,7 +255,11 @@ const ShopByProduct = () => {
                     )}
                   </div>
                   
-                  {/* No cart button for books as per requirement */}
+                  <button
+                    className="text-blue-600 text-sm hover:text-blue-800 hover:underline flex items-center"
+                  >
+                    View Stores <span className="ml-1">→</span>
+                  </button>
                 </div>
                 
                 {cartItems[book._id] && (
@@ -298,7 +319,10 @@ const ShopByProduct = () => {
                   {/* Changed cart button for stationery */}
                   {!cartItems[product._id] ? (
                     <button
-                      onClick={() => addToCart(product._id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(product._id);
+                      }}
                       disabled={product.status === "Out of Stock"}
                       className={`flex items-center gap-1 px-3 py-1 rounded-md ${
                         product.status === "Out of Stock"
@@ -312,7 +336,10 @@ const ShopByProduct = () => {
                   ) : (
                     <div className="flex items-center border border-gray-200 rounded-md">
                       <button
-                        onClick={() => removeFromCart(product._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFromCart(product._id);
+                        }}
                         className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-l-md"
                       >
                         <FaMinus size={12} />
@@ -321,7 +348,10 @@ const ShopByProduct = () => {
                         {cartItems[product._id]}
                       </span>
                       <button
-                        onClick={() => addToCart(product._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(product._id);
+                        }}
                         className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-md"
                       >
                         <FaPlus size={12} />
