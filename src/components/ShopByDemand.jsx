@@ -9,6 +9,8 @@ const ShopByDemand = () => {
   const [demandList, setDemandList] = useState([]);
   const [whatsapp, setWhatsapp] = useState("");
   const [phone, setPhone] = useState("");
+  const [schoolName, setSchoolName] = useState(""); // New state for school name
+  const [studentName, setStudentName] = useState(""); // New state for student name
   const [submissionStatus, setSubmissionStatus] = useState(null); // null, 'success', 'error'
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -52,7 +54,9 @@ const ShopByDemand = () => {
         title: item.name,
         author: "" // We don't collect author info in the UI, so sending empty string
       })),
-      phoneNumber: whatsapp // Using the WhatsApp number as the primary phone number
+      phoneNumber: whatsapp, // Using the WhatsApp number as the primary phone number
+      schoolName, // Include the school name in the request
+      studentName // Include the student name in the request
     };
     
     setIsSubmitting(true);
@@ -82,6 +86,8 @@ const ShopByDemand = () => {
         setDemandList([]);
         setWhatsapp("");
         setPhone("");
+        setSchoolName("");
+        setStudentName("");
         setSubmissionStatus(null);
       }, 5000);
     } catch (error) {
@@ -276,6 +282,32 @@ const ShopByDemand = () => {
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 />
               </div>
+              
+              {/* School Name field */}
+              <div>
+                <label htmlFor="schoolName" className="block text-gray-700 mb-1">School Name</label>
+                <input
+                  id="schoolName"
+                  type="text"
+                  value={schoolName}
+                  onChange={(e) => setSchoolName(e.target.value)}
+                  placeholder="Enter your school name"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                />
+              </div>
+              
+              {/* Student Name field */}
+              <div>
+                <label htmlFor="studentName" className="block text-gray-700 mb-1">Student Name</label>
+                <input
+                  id="studentName"
+                  type="text"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                  placeholder="Enter student name"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                />
+              </div>
             </div>
             
             <div className="mt-6">
@@ -313,7 +345,3 @@ const ShopByDemand = () => {
 };
 
 export default ShopByDemand;
-
-
-
-

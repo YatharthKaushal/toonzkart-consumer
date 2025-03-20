@@ -1,6 +1,7 @@
 import React from 'react';
 import HeroSection from '../components/HeroSection';
 import ShopBy from '../components/ShopBy';
+import AboutUs from '../components/AboutUs';
 import Stores from '../components/Stores';
 import WhatWeAre from '../components/WhatWeAre';
 import AffiliatedPartners from '../components/AffiliatedPartners';
@@ -11,9 +12,10 @@ const HomePage = () => {
     <div>
       <HeroSection />
       <ShopBy />
+      <AboutUs />
       <Stores />
       <WhatWeAre />
-      <AffiliatedPartners></AffiliatedPartners>
+      <AffiliatedPartners />
       <Footer />
     </div>
   );
