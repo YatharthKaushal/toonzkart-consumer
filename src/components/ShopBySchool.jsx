@@ -76,11 +76,17 @@ const ShopBySchool = () => {
               className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer"
               onClick={() => setSelectedSchool(school)}
             >
-              <img
-                src={school.image || "https://via.placeholder.com/150"}
-                alt={school.name}
-                className="w-full h-40 object-cover rounded-md"
-              />
+              <div className="h-40 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
+                <img
+                  src={school.image || "https://via.placeholder.com/150"}
+                  alt={school.name}
+                  className="max-h-full max-w-full object-contain"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://via.placeholder.com/150?text=School";
+                  }}
+                />
+              </div>
               <h3 className="text-lg font-semibold mt-3 text-gray-800">{school.name}</h3>
               <p className="text-gray-600 flex items-center">
                 <FaMapMarkerAlt className="text-red-500 mr-2" /> {school.location.city}
