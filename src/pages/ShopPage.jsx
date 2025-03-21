@@ -18,11 +18,24 @@ const ShopPage = () => {
     console.log('User Token:', userToken);
   }, []);
 
-  // Check if there's a selected book in the location state
+  // Check for both selected book and activeTab in the location state
   useEffect(() => {
-    if (location.state && location.state.selectedBook) {
-      setSelectedBook(location.state.selectedBook);
-      setActiveTab("product"); // Automatically switch to product tab
+    if (location.state) {
+      // If there's a selected book, set it and switch to product tab
+      if (location.state.selectedBook) {
+        setSelectedBook(location.state.selectedBook);
+        setActiveTab("product"); // Automatically switch to product tab
+      }
+      
+      // If activeTab is specified, set it (will override the product tab if both are present)
+      if (location.state.activeTab) {
+        setActiveTab(location.state.activeTab);
+        
+        // If switching to a different tab, reset the selected book
+        if (location.state.activeTab !== "product") {
+          setSelectedBook(null);
+        }
+      }
     }
   }, [location.state]);
 

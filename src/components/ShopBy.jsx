@@ -1,23 +1,24 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const categories = [
   {
     title: "Shop by School",
     subtitle: "Find books recommended by your school",
     image: "https://res.cloudinary.com/dco22xvey/image/upload/v1742477676/2_rxzfvv.png",
-    link: "/shop",
+    tabId: "school",
   },
   {
     title: "Shop by Products",
     subtitle: "Browse books by subject and topics",
     image: "https://res.cloudinary.com/dco22xvey/image/upload/v1742477682/3_mnuhos.png",
-    link: "/shop",
+    tabId: "product",
   },
   {
     title: "Shop by Demand",
     subtitle: "Discover trending and in-demand books",
     image: "https://res.cloudinary.com/dco22xvey/image/upload/v1742477709/6_ocn3ua.png",
-    link: "/shop",
+    tabId: "demand",
   }
 ];
 
@@ -28,10 +29,11 @@ const ShopBy = () => {
       
       <div className="flex flex-col sm:flex-row flex-wrap justify-center items-stretch gap-4 md:gap-6">
         {categories.map((category, index) => (
-          <a 
+          <Link 
             key={index} 
-            href={category.link} 
-            className="w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-1rem)] bg-white rounded-lg md:rounded-xl shadow-md md:shadow-lg overflow-hidden transition-transform transform hover:scale-102 md:hover:scale-105 border border-gray-100"
+            to="/shop" 
+            state={{ activeTab: category.tabId }}
+            className="w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-1rem)] bg-white rounded-lg md:rounded-xl shadow-md md:shadow-lg overflow-hidden transition-transform hover:scale-102 md:hover:scale-105 border border-gray-100"
           >
             <div className="flex flex-row sm:flex-col items-center sm:items-stretch">
               <img 
@@ -45,7 +47,7 @@ const ShopBy = () => {
                 <p className="text-gray-600 text-xs md:text-sm mt-1">{category.subtitle}</p>
               </div>
             </div>
-          </a>
+          </Link>
         ))}
       </div>
     </div>
