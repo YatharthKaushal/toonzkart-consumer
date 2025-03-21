@@ -31,6 +31,11 @@ const StoreDetails = () => {
   const [activeCategory, setActiveCategory] = useState('All Books');
   const [activeSubject, setActiveSubject] = useState(null);
   const [showSchools, setShowSchools] = useState(true);
+  
+  // Add cart API related states
+  const [cartLoading, setCartLoading] = useState(false);
+  const [cartError, setCartError] = useState("");
+  const [cartSuccess, setCartSuccess] = useState("");
 
   // Fetch store details from API
   useEffect(() => {
@@ -129,47 +134,163 @@ const StoreDetails = () => {
     setActiveSubject(subject === activeSubject ? null : subject);
   };
 
-  // Simplified add to cart function without alerts
-  const addToCart = (book) => {
-    // Check if book is already in cart quantities
-    if (bookQuantities[book._id]) {
-      // Book already has quantity, just increment it
-      setBookQuantities(prev => ({
-        ...prev,
-        [book._id]: (prev[book._id] || 0) + 1
-      }));
-      return;
+  // Add to cart function using API with the correct endpoint
+  const addToCart = async (book) => {
+    try {
+      setCartLoading(true);
+      setCartError("");
+      
+      // Get the token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Authentication required. Please log in.');
+      }
+      
+      // Determine the category - default to "Books" if not specified
+      const category = book.category === "Stationery" ? "Stationery" : "Book";
+      
+      // Make API call to add to cart
+      const response = await axios.post(
+        `${API_BASE_URL}/api/cart`,
+        {
+          productId: book._id,
+          quantity: 1,
+          category: category
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (response.data) {
+        console.log("Added to cart:", response.data);
+        
+        // Find and store the cart item ID for this product
+        const cartItem = response.data.items.find(item => item.productId === book._id);
+        
+        // Update local state for UI feedback
+        setBookQuantities(prev => ({
+          ...prev,
+          [book._id]: 1
+        }));
+        
+        // Add to cart items if not already there
+        if (!cartItems.find(item => item._id === book._id)) {
+          setCartItems(prev => [...prev, book]);
+        }
+        
+        setCartSuccess(`${book.title || "Product"} added to cart!`);
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setCartSuccess("");
+        }, 3000);
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      const message = err.response?.data?.message || "Failed to add to cart. Please try again.";
+      setCartError(message);
+      
+      // Clear error message after 3 seconds
+      setTimeout(() => {
+        setCartError("");
+      }, 3000);
+    } finally {
+      setCartLoading(false);
     }
-    
-    // Add book to quantities with initial count of 1
-    setBookQuantities(prev => ({
-      ...prev,
-      [book._id]: 1
-    }));
-    
-    // Add to cart items if not already there
-    setCartItems(prev => [...prev, book]);
   };
   
-  // Simplified quantity update function without alerts
-  const updateQuantity = (bookId, change) => {
-    const currentQty = bookQuantities[bookId] || 0;
-    const newQty = Math.max(0, currentQty + change);
-    
-    if (newQty === 0) {
-      // Remove from quantities
-      const newQuantities = {...bookQuantities};
-      delete newQuantities[bookId];
-      setBookQuantities(newQuantities);
+  // Update quantity using API
+  const updateQuantity = async (bookId, change) => {
+    try {
+      setCartLoading(true);
+      setCartError("");
       
-      // Remove from cart
-      setCartItems(cartItems.filter(item => item._id !== bookId));
-    } else {
-      // Update quantity
-      setBookQuantities(prev => ({
-        ...prev,
-        [bookId]: newQty
-      }));
+      const currentQty = bookQuantities[bookId] || 0;
+      const newQty = Math.max(0, currentQty + change);
+      
+      // Get the token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Authentication required. Please log in.');
+      }
+      
+      // Find the cart item associated with this product
+      const response = await axios.get(`${API_BASE_URL}/api/cart`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      // Find the cart item ID for this product
+      const cartData = response.data;
+      const cartItem = cartData.items.find(item => item.productId._id === bookId || item.productId === bookId);
+      
+      if (!cartItem) {
+        throw new Error("Item not found in cart");
+      }
+      
+      if (newQty === 0) {
+        // Remove from cart if quantity is 0
+        await axios.delete(`${API_BASE_URL}/api/cart/${cartItem._id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        // Update local state
+        const newQuantities = {...bookQuantities};
+        delete newQuantities[bookId];
+        setBookQuantities(newQuantities);
+        setCartItems(cartItems.filter(item => item._id !== bookId));
+        
+        setCartSuccess("Item removed from cart");
+      } else {
+        // Update quantity
+        await axios.put(
+          `${API_BASE_URL}/api/cart/${cartItem._id}`,
+          {
+            quantity: newQty
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        // Update local state
+        setBookQuantities(prev => ({
+          ...prev,
+          [bookId]: newQty
+        }));
+        
+        setCartSuccess("Cart updated successfully");
+      }
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setCartSuccess("");
+      }, 3000);
+    } catch (err) {
+      console.error("Error updating cart:", err);
+      const message = err.response?.data?.message || "Failed to update cart. Please try again.";
+      setCartError(message);
+      
+      // Clear error message after 3 seconds
+      setTimeout(() => {
+        setCartError("");
+      }, 3000);
+    } finally {
+      setCartLoading(false);
     }
   };
 
@@ -214,6 +335,56 @@ const StoreDetails = () => {
     navigate(-1);
   };
 
+  // Fetch current cart to initialize state
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          // User not logged in, don't attempt to fetch cart
+          return;
+        }
+        
+        const response = await axios.get(`${API_BASE_URL}/api/cart`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.data && response.data.items) {
+          // Create quantities object from the API response
+          const newQuantities = {};
+          const cartBooks = [];
+          
+          response.data.items.forEach(item => {
+            // Handle both possible structures of productId (object or string)
+            const productId = typeof item.productId === 'object' ? item.productId._id : item.productId;
+            newQuantities[productId] = item.quantity;
+            
+            // Find the full book data to add to cart items
+            const book = storeBooks.find(b => b._id === productId);
+            if (book) {
+              cartBooks.push(book);
+            }
+          });
+          
+          setBookQuantities(newQuantities);
+          setCartItems(cartBooks);
+        }
+      } catch (err) {
+        console.error("Error fetching cart:", err);
+        // Don't show error to user, just initialize empty cart
+      }
+    };
+    
+    // Only fetch cart once books are loaded
+    if (storeBooks.length > 0) {
+      fetchCart();
+    }
+  }, [storeBooks]);
+
   // Error state for the entire page only if completely failed
   if (error && !store) {
     return (
@@ -238,6 +409,19 @@ const StoreDetails = () => {
       <div className="sticky top-0 z-50 bg-white shadow-md">
         <Header logo={toonzkartLogo} />
       </div>
+
+      {/* Cart Status Messages */}
+      {cartSuccess && (
+        <div className="fixed top-20 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
+          <span className="block sm:inline">{cartSuccess}</span>
+        </div>
+      )}
+      
+      {cartError && (
+        <div className="fixed top-20 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+          <span className="block sm:inline">{cartError}</span>
+        </div>
+      )}
 
       <div className="w-full px-6 pt-6">
         {/* Back Button */}
@@ -469,7 +653,7 @@ const StoreDetails = () => {
                     <div className="h-40 mb-2 bg-gray-100 flex items-center justify-center rounded overflow-hidden">
                       {book.image ? (
                         <img 
-                          src={`${API_BASE_URL}${book.image}`} 
+                          src={`${book.image}`} 
                           alt={book.title} 
                           className="h-full w-full object-cover"
                           onError={(e) => {
@@ -496,24 +680,30 @@ const StoreDetails = () => {
                       {!bookQuantities[book._id] ? (
                         <button 
                           onClick={() => addToCart(book)}
-                          className="w-full bg-blue-600 text-white py-2 px-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-                          disabled={book.status === "Out of Stock"}
+                          className={`w-full bg-blue-600 text-white py-2 px-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center ${cartLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          disabled={book.status === "Out of Stock" || cartLoading}
                         >
-                          <ShoppingCart size={16} className="mr-2" />
+                          {cartLoading ? (
+                            <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin mr-2"></div>
+                          ) : (
+                            <ShoppingCart size={16} className="mr-2" />
+                          )}
                           <span>{book.status === "Out of Stock" ? "Out of Stock" : "Add to Cart"}</span>
                         </button>
                       ) : (
                         <div className="w-full flex items-center justify-between border border-blue-600 rounded-md">
                           <button 
                             onClick={() => updateQuantity(book._id, -1)}
-                            className="bg-blue-600 text-white py-1 px-3 rounded-l-md hover:bg-blue-700 transition-colors"
+                            className={`bg-blue-600 text-white py-1 px-3 rounded-l-md hover:bg-blue-700 transition-colors ${cartLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={cartLoading}
                           >
                             -
                           </button>
                           <span className="px-3">{bookQuantities[book._id]}</span>
                           <button 
                             onClick={() => updateQuantity(book._id, 1)}
-                            className="bg-blue-600 text-white py-1 px-3 rounded-r-md hover:bg-blue-700 transition-colors"
+                            className={`bg-blue-600 text-white py-1 px-3 rounded-r-md hover:bg-blue-700 transition-colors ${cartLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={cartLoading}
                           >
                             +
                           </button>

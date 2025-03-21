@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Trash2, ShoppingBag, CreditCard, MapPin } from 'lucide-react';
+import { ChevronLeft, Trash2, ShoppingBag, CreditCard, MapPin, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import toonzkartLogo from "../assets/toonzkart_logo.png";
@@ -14,6 +14,10 @@ const CartPage = () => {
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [orderProcessing, setOrderProcessing] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [orderError, setOrderError] = useState(null);
+  const [shippingAddress, setShippingAddress] = useState('MG Road, Central District, New Delhi - 110001');
 
   // Fetch cart items from API
   useEffect(() => {
@@ -44,21 +48,23 @@ const CartPage = () => {
         
         // Transform the cart data to match the component's expected format
         const transformedCartItems = data.items.map(item => ({
-          id: item.bookId._id,
-          title: item.bookId.title,
-          author: item.bookId.author,
-          price: item.bookId.price,
-          publisher: item.bookId.publisher,
-          category: item.bookId.category,
-          image: item.bookId.image,
-          originalPrice: item.bookId.originalPrice,
-          discount: item.bookId.discount
+          id: item.productId._id,
+          itemId: item._id,  // Store the cart item's ID for API calls
+          title: item.productId.name,
+          brand: item.productId.brand,
+          price: item.productId.price,
+          category: item.productId.category,
+          image: item.productId.image,
+          originalPrice: item.productId.price + (item.productId.discount > 0 ? Math.round(item.productId.price * item.productId.discount / 100) : 0),
+          discount: item.productId.discount,
+          stock: item.productId.stock,
+          status: item.productId.status
         }));
 
         // Create quantities object from the API response
         const newQuantities = {};
         data.items.forEach(item => {
-          newQuantities[item.bookId._id] = item.quantity;
+          newQuantities[item.productId._id] = item.quantity;
         });
 
         setCartItems(transformedCartItems);
@@ -74,9 +80,9 @@ const CartPage = () => {
     fetchCartItems();
   }, []);
 
-  const updateQuantity = async (itemId, change) => {
+  const updateQuantity = async (productId, change) => {
     try {
-      const currentQty = quantities[itemId] || 0;
+      const currentQty = quantities[productId] || 0;
       const newQty = Math.max(1, currentQty + change);
       
       // Get the token from localStorage
@@ -86,15 +92,20 @@ const CartPage = () => {
         throw new Error('Authentication required. Please log in.');
       }
 
-      // Update quantity on the server
-      const response = await fetch(`https://backend-lzb7.onrender.com/api/cart/update`, {
+      // Find the cart item that contains this product
+      const cartItem = cartItems.find(item => item.id === productId);
+      if (!cartItem) {
+        throw new Error("Item not found in cart");
+      }
+
+      // Update quantity on the server with the cart item's ID
+      const response = await fetch(`https://backend-lzb7.onrender.com/api/cart/${cartItem.itemId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          bookId: itemId,
           quantity: newQty
         })
       });
@@ -106,7 +117,7 @@ const CartPage = () => {
       // Update local state if server update is successful
       setQuantities({
         ...quantities,
-        [itemId]: newQty
+        [productId]: newQty
       });
     } catch (err) {
       console.error('Failed to update quantity:', err);
@@ -114,7 +125,7 @@ const CartPage = () => {
     }
   };
 
-  const removeItem = async (itemId) => {
+  const removeItem = async (productId) => {
     try {
       // Get the token from localStorage
       const token = localStorage.getItem('token');
@@ -123,16 +134,19 @@ const CartPage = () => {
         throw new Error('Authentication required. Please log in.');
       }
 
-      // Remove item from the server
-      const response = await fetch(`https://backend-lzb7.onrender.com/api/cart/remove`, {
+      // Find the cart item that contains this product
+      const cartItem = cartItems.find(item => item.id === productId);
+      if (!cartItem) {
+        throw new Error("Item not found in cart");
+      }
+
+      // Remove item from the server using the cart item's ID
+      const response = await fetch(`https://backend-lzb7.onrender.com/api/cart/${cartItem.itemId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          bookId: itemId
-        })
+        }
       });
 
       if (!response.ok) {
@@ -140,10 +154,10 @@ const CartPage = () => {
       }
 
       // Update local state if server update is successful
-      setCartItems(cartItems.filter(item => item.id !== itemId));
+      setCartItems(cartItems.filter(item => item.id !== productId));
       
       const newQuantities = {...quantities};
-      delete newQuantities[itemId];
+      delete newQuantities[productId];
       setQuantities(newQuantities);
     } catch (err) {
       console.error('Failed to remove item:', err);
@@ -159,6 +173,113 @@ const CartPage = () => {
     }
   };
 
+  // Generate a random order ID
+  const generateOrderId = () => {
+    const prefix = 'ORD-';
+    const randomNumber = Math.floor(1000 + Math.random() * 9000);
+    return `${prefix}${randomNumber}`;
+  };
+
+  // Get payment method mapping
+  const getPaymentMethodCode = () => {
+    switch(paymentMethod) {
+      case 'card': return 'CARD';
+      case 'upi': return 'UPI';
+      case 'netbanking': return 'NET_BANKING';
+      case 'cod': return 'COD';
+      default: return 'CARD';
+    }
+  };
+
+  // Handle checkout process
+  const handleCheckout = async () => {
+    try {
+      setOrderProcessing(true);
+      setOrderError(null);
+      
+      // Get the token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Authentication required. Please log in.');
+      }
+
+      // Get user ID from token or localStorage
+      const userId = localStorage.getItem('userId') || 'CUST-' + Math.floor(1000 + Math.random() * 9000);
+
+      // List of stationery categories
+      const stationeryCategories = ["Pens", "Pencils", "Notebooks", "Erasers", "Markers", "Files & Folders", "Other"];
+      
+      // Prepare order items
+      const orderItems = cartItems.map(item => ({
+        // Use "Stationery" if the product category is in the stationery list, otherwise use "Books"
+        category: stationeryCategories.includes(item.category) ? "Stationery" : "Book",
+        productId: item.id,
+        quantity: quantities[item.id] || 1,
+        price: item.price
+      }));
+
+      // Calculate final amounts
+      const subtotal = cartItems.reduce((total, item) => {
+        return total + (item.price * (quantities[item.id] || 0));
+      }, 0);
+
+      const discount = promoApplied ? Math.round(subtotal * 0.2) : 0;
+      const deliveryCharge = deliveryOption === 'express' ? 99 : (subtotal >= 499 ? 0 : 49);
+      const codFee = paymentMethod === 'cod' ? 40 : 0;
+      const total = subtotal - discount + deliveryCharge + codFee;
+
+      // Prepare order request
+      const orderRequest = {
+        orderId: generateOrderId(),
+        paymentMethod: getPaymentMethodCode(),
+        customerId: userId,
+        shippingAddress: shippingAddress,
+        totalAmount: total,
+        items: orderItems
+      };
+
+      console.log('Placing order:', orderRequest);
+
+      // Make API call to create order
+      const response = await fetch('https://backend-lzb7.onrender.com/api/orders', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(orderRequest)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error placing order: ${response.statusText}`);
+      }
+
+      const orderData = await response.json();
+      console.log('Order placed successfully:', orderData);
+      
+      // Set success state
+      setOrderSuccess(true);
+      
+      // Clear cart after successful order
+      // You may want to do this through an API call as well
+      setCartItems([]);
+      setQuantities({});
+      
+      // Redirect to order confirmation page after a short delay
+      setTimeout(() => {
+        navigate('/order-success', { state: { orderId: orderRequest.orderId } });
+      }, 2000);
+      
+    } catch (err) {
+      console.error('Failed to place order:', err);
+      setOrderError(err.message);
+    } finally {
+      setOrderProcessing(false);
+    }
+  };
+
   // Calculate subtotal
   const subtotal = cartItems.reduce((total, item) => {
     return total + (item.price * (quantities[item.id] || 0));
@@ -170,8 +291,11 @@ const CartPage = () => {
   // Calculate delivery charge
   const deliveryCharge = deliveryOption === 'express' ? 99 : (subtotal >= 499 ? 0 : 49);
   
+  // Calculate COD fee if applicable
+  const codFee = paymentMethod === 'cod' ? 40 : 0;
+  
   // Calculate total
-  const total = subtotal - discount + deliveryCharge;
+  const total = subtotal - discount + deliveryCharge + codFee;
 
   // Display loading state
   if (loading) {
@@ -215,6 +339,28 @@ const CartPage = () => {
     );
   }
 
+  // Display success state
+  if (orderSuccess) {
+    return (
+      <div className="w-full font-sans">
+        <div className="sticky top-0 z-50 bg-white shadow-md">
+          <Header logo={toonzkartLogo} />
+        </div>
+        <div className="max-w-6xl mx-auto p-4 font-sans">
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-8 rounded relative text-center" role="alert">
+            <CheckCircle size={64} className="mx-auto mb-4 text-green-500" />
+            <h2 className="text-2xl font-bold mb-2">Order Placed Successfully!</h2>
+            <p className="mb-4">Your order has been received and is being processed.</p>
+            <p className="text-sm mb-6">You will be redirected to the order confirmation page...</p>
+            <div className="w-16 h-1 bg-green-500 mx-auto">
+              <div className="h-1 bg-green-700 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full font-sans">
       {/* Sticky Header */}
@@ -237,6 +383,20 @@ const CartPage = () => {
           </div>
         </header>
 
+        {/* Order Error Alert */}
+        {orderError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <strong className="font-bold">Order Error: </strong>
+            <span className="block sm:inline">{orderError}</span>
+            <button 
+              className="absolute top-0 bottom-0 right-0 px-4 py-3"
+              onClick={() => setOrderError(null)}
+            >
+              <span className="text-xl">&times;</span>
+            </button>
+          </div>
+        )}
+
         {/* Main content */}
         <div className="flex flex-col md:flex-row gap-6">
           {/* Cart items list and payment options */}
@@ -245,9 +405,9 @@ const CartPage = () => {
               <div className="text-center py-12 bg-gray-50 rounded-lg">
                 <ShoppingBag size={48} className="mx-auto text-gray-400 mb-4" />
                 <h2 className="text-xl font-semibold mb-2">Your cart is empty</h2>
-                <p className="text-gray-500 mb-4">Looks like you haven't added any books to your cart yet.</p>
+                <p className="text-gray-500 mb-4">Looks like you haven't added any products to your cart yet.</p>
                 <a href="/shop" className="bg-blue-600 text-white px-6 py-2 rounded-md inline-block">
-                  Browse Books
+                  Browse Products
                 </a>
               </div>
             ) : (
@@ -259,16 +419,16 @@ const CartPage = () => {
                       <div className="flex items-start">
                         <div className="h-24 w-20 bg-gray-100 flex-shrink-0 flex items-center justify-center rounded overflow-hidden mr-4">
                           {item.image ? (
-                            <img src={`https://backend-lzb7.onrender.com${item.image}`} alt={item.title} className="object-cover h-full w-full" />
+                            <img src={item.image} alt={item.title} className="object-cover h-full w-full" />
                           ) : (
-                            <div className="text-gray-400 text-center text-sm p-2">Book Cover</div>
+                            <div className="text-gray-400 text-center text-sm p-2">Product Image</div>
                           )}
                         </div>
                         
                         <div className="flex-grow">
                           <h3 className="font-medium text-gray-800">{item.title}</h3>
-                          <p className="text-sm text-gray-500">{item.author}</p>
-                          <p className="text-xs text-gray-400">{item.publisher}</p>
+                          <p className="text-sm text-gray-500">{item.brand}</p>
+                          <p className="text-xs text-gray-400">{item.category}</p>
                           
                           <div className="flex items-center justify-between mt-2">
                             <div className="flex items-center">
@@ -416,6 +576,13 @@ const CartPage = () => {
                   <span>{deliveryCharge === 0 ? 'Free' : `₹${deliveryCharge}`}</span>
                 </div>
                 
+                {paymentMethod === 'cod' && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>COD Fee</span>
+                    <span>₹{codFee}</span>
+                  </div>
+                )}
+                
                 <div className="border-t pt-3 mt-2">
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
@@ -499,17 +666,34 @@ const CartPage = () => {
               </div>
               
               {/* Checkout button */}
-              <button className="w-full bg-blue-600 text-white py-3 rounded-md font-bold hover:bg-blue-700 transition-colors flex items-center justify-center">
-                <CreditCard size={18} className="mr-2" />
-                Proceed to Checkout
+              <button 
+                className={`w-full ${orderProcessing ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white py-3 rounded-md font-bold transition-colors flex items-center justify-center`}
+                onClick={handleCheckout}
+                disabled={orderProcessing || cartItems.length === 0}
+              >
+                {orderProcessing ? (
+                  <>
+                    <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin mr-2"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard size={18} className="mr-2" />
+                    Proceed to Checkout
+                  </>
+                )}
               </button>
               
               {/* Delivery location */}
               <div className="mt-4 flex items-start text-sm text-gray-500">
                 <MapPin size={18} className="mr-2 flex-shrink-0 text-gray-400" />
                 <span>
-                  Delivering to: MG Road, Central District, New Delhi - 110001
-                  <a href="#" className="text-blue-600 block mt-1">Change</a>
+                  Delivering to: {shippingAddress}
+                  <a href="#" className="text-blue-600 block mt-1" onClick={(e) => {
+                    e.preventDefault();
+                    const newAddress = prompt("Enter your shipping address:", shippingAddress);
+                    if (newAddress) setShippingAddress(newAddress);
+                  }}>Change</a>
                 </span>
               </div>
             </div>

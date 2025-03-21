@@ -11,6 +11,7 @@ import ProfilePage from "./pages/ProfilePage";
 import AboutUsPage from "./pages/AboutUsPage";
 import ContactUsPage from "./pages/ContactUsPage";
 import StoresPage from "./pages/StoresPage";
+import OrderSuccessPage from "./pages/OrderSuccessPage";
 
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
       <Route path="/stores" element={<StoresPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
+      <Route path="/order-success" element={<OrderSuccessPage />} />
       <Route 
           path="/cart" 
           element={
