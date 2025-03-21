@@ -67,8 +67,7 @@ const ContactUsPage = () => {
               </div>
               <h3 className="text-xl font-bold mb-3">Phone</h3>
               <p className="text-gray-600 mb-3">
-                Toll-Free: <span className="font-medium">1800-2000-3000</span><br />
-                International: <span className="font-medium">+91-124-4567890</span>
+                Contact No.: <span className="font-medium">+919165106000</span><br />
               </p>
               <div className="flex items-center justify-center text-gray-500 text-sm">
                 <Clock size={14} className="mr-1" />
@@ -152,7 +151,7 @@ const ContactUsPage = () => {
                   type="tel" 
                   id="phone" 
                   className="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="+91 9876543210"
+                  placeholder="+919165106000"
                 />
               </div>
               

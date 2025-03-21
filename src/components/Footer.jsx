@@ -44,7 +44,7 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-3">Contact Us</h4>
             <ul className="text-gray-400 space-y-2">
               <li>Email: <a href="mailto:support@toonzkart.com" className="hover:text-gray-200">support@toonzkart.com</a></li>
-              <li>Phone: <a href="tel:+919876543210" className="hover:text-gray-200">+91 98765 43210</a></li>
+              <li>Phone: <a href="tel:+919165106000" className="hover:text-gray-200">+91 91651 06000</a></li>
               <li>Address: Indore, Madhya Pradesh, India</li>
             </ul>
           </div>
