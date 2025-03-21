@@ -13,9 +13,9 @@ const services = [
     description: "Easily find and buy books based on your school's curriculum and syllabus.",
   },
   {
-    icon: <FaChalkboardTeacher className="text-3xl md:text-4xl text-red-600" />,
-    title: "Academic & Exam Materials",
-    description: "Get the best resources for competitive exams, school, and university studies.",
+    icon: <FaTools className="text-3xl md:text-4xl text-purple-600" />,
+    title: "Get on Demand",
+    description: "Get your books, notebooks, and uniforms customized as per your needs.",
   },
   {
     icon: <FaShoppingCart className="text-3xl md:text-4xl text-yellow-600" />,
@@ -23,9 +23,9 @@ const services = [
     description: "Find high-quality stationery, notebooks, and other school/office essentials.",
   },
   {
-    icon: <FaTools className="text-3xl md:text-4xl text-purple-600" />,
-    title: "Customization Services",
-    description: "Get your books, notebooks, and uniforms customized as per your needs.",
+    icon: <FaChalkboardTeacher className="text-3xl md:text-4xl text-red-600" />,
+    title: "Academic & Exam Materials",
+    description: "Get the best resources for competitive exams, school, and university studies.",
   },
   {
     icon: <FaPencilAlt className="text-3xl md:text-4xl text-pink-600" />,
