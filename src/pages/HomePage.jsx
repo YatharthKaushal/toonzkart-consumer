@@ -8,6 +8,7 @@ import AffiliatedPartners from '../components/AffiliatedPartners';
 import Footer from '../components/Footer';
 import RetailerPartners from '../components/RetailerPartners';
 import WhatsAppButton from '../components/WhatsAppButton';
+import ShopByDemandButton from '../components/ShopByDemandButton';
 
 const HomePage = () => {
   return (
@@ -21,6 +22,7 @@ const HomePage = () => {
       <AffiliatedPartners />
       <Footer />
       <WhatsAppButton />
+      <ShopByDemandButton />
     </div>
   );
 };

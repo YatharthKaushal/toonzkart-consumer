@@ -120,7 +120,7 @@ const StoresViewBooks = ({ selectedBook, onBack }) => {
                     <div className="h-40 bg-gray-200 rounded-md mb-3 flex items-center justify-center overflow-hidden">
                       {store.image ? (
                         <img
-                          src={`${API_BASE_URL}${store.image}`}
+                          src={`${store.image}`}
                           alt={store.storeName}
                           className="w-full h-full object-cover"
                           onError={(e) => {
