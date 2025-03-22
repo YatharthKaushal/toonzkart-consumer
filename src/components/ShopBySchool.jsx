@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaSearch, FaFilter, FaSort, FaMapMarkerAlt } from "react-icons/fa";
+import { FaSearch, FaMapMarkerAlt } from "react-icons/fa";
 import StoresView from "./StoresView";
 
 const ShopBySchool = () => {
@@ -37,10 +37,10 @@ const ShopBySchool = () => {
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
-      {/* Search and Filter Section */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+      {/* Search Section - Filter and Sort buttons removed */}
+      <div className="flex justify-center mb-8 bg-white p-4 rounded-lg shadow-lg border border-gray-200">
         {/* Search Input */}
-        <div className="relative w-full md:w-1/3">
+        <div className="relative w-full md:w-2/3">
           <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
           <input
             type="text"
@@ -49,16 +49,6 @@ const ShopBySchool = () => {
             onChange={(e) => setSearch(e.target.value)}
             className="border border-gray-300 pl-10 pr-4 py-2 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none shadow-md"
           />
-        </div>
-
-        {/* Filter & Sort Buttons */}
-        <div className="flex gap-4 mt-4 md:mt-0">
-          <button className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-700 px-5 py-2 rounded-md transition shadow">
-            <FaFilter /> Filter
-          </button>
-          <button className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-700 px-5 py-2 rounded-md transition shadow">
-            <FaSort /> Sort
-          </button>
         </div>
       </div>
 

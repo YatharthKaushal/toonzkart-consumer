@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaShoppingBag, FaFilter, FaSearch, FaBook, FaPen, FaShoppingCart, FaPencilAlt, FaEraser, FaFolder, FaQuestion, FaPlus, FaMinus } from "react-icons/fa";
+import { FaBook, FaPen, FaSearch, FaShoppingCart, FaPencilAlt, FaEraser, FaFolder, FaQuestion, FaPlus, FaMinus } from "react-icons/fa";
 import axios from "axios";
 
 const API_BASE_URL = "https://backend-lzb7.onrender.com";
@@ -166,10 +166,10 @@ const ShopByProduct = ({ onBookSelect }) => {
         </button>
       </div>
 
-      {/* Search & Filter Section */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+      {/* Search Section - Filter button removed */}
+      <div className="flex justify-center mb-8 bg-white p-4 rounded-lg shadow-lg border border-gray-200">
         {/* Search Bar */}
-        <div className="relative w-full md:w-1/3">
+        <div className="relative w-full md:w-2/3">
           <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
           <input
             type="text"
@@ -179,11 +179,6 @@ const ShopByProduct = ({ onBookSelect }) => {
             className="border border-gray-300 pl-10 pr-4 py-2 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none shadow-md"
           />
         </div>
-
-        {/* Filter Button */}
-        <button className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-700 px-5 py-2 rounded-md transition shadow mt-4 md:mt-0">
-          <FaFilter /> Filter
-        </button>
       </div>
 
       {/* Loading Message */}
