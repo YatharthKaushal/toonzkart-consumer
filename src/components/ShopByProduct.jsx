@@ -14,7 +14,12 @@ const ShopByProduct = ({ onBookSelect }) => {
   const [loadingBooks, setLoadingBooks] = useState(false);
   const [loadingStationery, setLoadingStationery] = useState(false);
   const [error, setError] = useState("");
+  
+  // Cart state
   const [cartItems, setCartItems] = useState({});
+  const [cartLoading, setCartLoading] = useState(false);
+  const [cartError, setCartError] = useState("");
+  const [cartSuccess, setCartSuccess] = useState("");
 
   // Fetch books from API
   useEffect(() => {
@@ -59,6 +64,45 @@ const ShopByProduct = ({ onBookSelect }) => {
 
     fetchStationery();
   }, [activeTab]);
+  
+  // Fetch current cart to initialize state
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          // User not logged in, don't attempt to fetch cart
+          return;
+        }
+        
+        const response = await axios.get(`${API_BASE_URL}/api/cart`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.data && response.data.items) {
+          // Create quantities object from the API response
+          const newQuantities = {};
+          
+          response.data.items.forEach(item => {
+            // Handle both possible structures of productId (object or string)
+            const productId = typeof item.productId === 'object' ? item.productId._id : item.productId;
+            newQuantities[productId] = item.quantity;
+          });
+          
+          setCartItems(newQuantities);
+        }
+      } catch (err) {
+        console.error("Error fetching cart:", err);
+        // Don't show error to user, just initialize empty cart
+      }
+    };
+    
+    fetchCart();
+  }, []);
 
   // Filter products based on search
   const filteredStationery = stationery.filter((product) =>
@@ -75,30 +119,158 @@ const ShopByProduct = ({ onBookSelect }) => {
       (book.category && book.category.toLowerCase().includes(search.toLowerCase()))
   );
 
-  // Handle adding to cart
-  const addToCart = (productId) => {
-    setCartItems(prev => {
-      return {
-        ...prev,
-        [productId]: (prev[productId] || 0) + 1
-      };
-    });
-  };
-
-  // Handle removing from cart
-  const removeFromCart = (productId) => {
-    setCartItems(prev => {
-      const currentQuantity = prev[productId] || 0;
-      if (currentQuantity <= 1) {
-        const newCart = { ...prev };
-        delete newCart[productId];
-        return newCart;
+  // Add to cart function using API
+  const addToCart = async (product, productType) => {
+    try {
+      setCartLoading(true);
+      setCartError("");
+      
+      // Get the token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Authentication required. Please log in.');
       }
-      return {
-        ...prev,
-        [productId]: currentQuantity - 1
-      };
-    });
+      
+      // Determine the category based on product type
+      const category = productType === "stationery" ? "Stationery" : "Book";
+      
+      // Make API call to add to cart
+      const response = await axios.post(
+        `${API_BASE_URL}/api/cart`,
+        {
+          productId: product._id,
+          quantity: 1,
+          category: category
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (response.data) {
+        console.log("Added to cart:", response.data);
+        
+        // Update local state for UI feedback
+        setCartItems(prev => ({
+          ...prev,
+          [product._id]: (prev[product._id] || 0) + 1
+        }));
+        
+        const productName = productType === "stationery" ? product.name : product.title;
+        setCartSuccess(`${productName || "Product"} added to cart!`);
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setCartSuccess("");
+        }, 3000);
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      const message = err.response?.data?.message || "Failed to add to cart. Please try again.";
+      setCartError(message);
+      
+      // Clear error message after 3 seconds
+      setTimeout(() => {
+        setCartError("");
+      }, 3000);
+    } finally {
+      setCartLoading(false);
+    }
+  };
+  
+  // Update quantity using API
+  const updateQuantity = async (productId, change, productType) => {
+    try {
+      setCartLoading(true);
+      setCartError("");
+      
+      const currentQty = cartItems[productId] || 0;
+      const newQty = Math.max(0, currentQty + change);
+      
+      // Get the token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Authentication required. Please log in.');
+      }
+      
+      // Find the cart item associated with this product
+      const response = await axios.get(`${API_BASE_URL}/api/cart`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      // Find the cart item ID for this product
+      const cartData = response.data;
+      const cartItem = cartData.items.find(item => 
+        item.productId._id === productId || item.productId === productId
+      );
+      
+      if (!cartItem) {
+        throw new Error("Item not found in cart");
+      }
+      
+      if (newQty === 0) {
+        // Remove from cart if quantity is 0
+        await axios.delete(`${API_BASE_URL}/api/cart/${cartItem._id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        // Update local state
+        const newCartItems = {...cartItems};
+        delete newCartItems[productId];
+        setCartItems(newCartItems);
+        
+        setCartSuccess("Item removed from cart");
+      } else {
+        // Update quantity
+        await axios.put(
+          `${API_BASE_URL}/api/cart/${cartItem._id}`,
+          {
+            quantity: newQty
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        // Update local state
+        setCartItems(prev => ({
+          ...prev,
+          [productId]: newQty
+        }));
+        
+        setCartSuccess("Cart updated successfully");
+      }
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setCartSuccess("");
+      }, 3000);
+    } catch (err) {
+      console.error("Error updating cart:", err);
+      const message = err.response?.data?.message || "Failed to update cart. Please try again.";
+      setCartError(message);
+      
+      // Clear error message after 3 seconds
+      setTimeout(() => {
+        setCartError("");
+      }, 3000);
+    } finally {
+      setCartLoading(false);
+    }
   };
 
   // Handle clicking on a book to view stores
@@ -142,6 +314,19 @@ const ShopByProduct = ({ onBookSelect }) => {
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
+      {/* Cart Status Messages */}
+      {cartSuccess && (
+        <div className="fixed top-20 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
+          <span className="block sm:inline">{cartSuccess}</span>
+        </div>
+      )}
+      
+      {cartError && (
+        <div className="fixed top-20 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+          <span className="block sm:inline">{cartError}</span>
+        </div>
+      )}
+    
       {/* Tabs */}
       <div className="flex mb-6">
         <button
@@ -166,7 +351,7 @@ const ShopByProduct = ({ onBookSelect }) => {
         </button>
       </div>
 
-      {/* Search Section - Filter button removed */}
+      {/* Search Section */}
       <div className="flex justify-center mb-8 bg-white p-4 rounded-lg shadow-lg border border-gray-200">
         {/* Search Bar */}
         <div className="relative w-full md:w-2/3">
@@ -206,7 +391,7 @@ const ShopByProduct = ({ onBookSelect }) => {
                 className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer"
                 onClick={() => handleBookClick(book)}
               >
-                {/* Modified image container to properly display book covers */}
+                {/* Image container */}
                 <div className="relative h-48 mb-3 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
                   {book.image ? (
                     <div className="w-full h-full flex items-center justify-center p-2">
@@ -246,18 +431,59 @@ const ShopByProduct = ({ onBookSelect }) => {
                     )}
                   </div>
                   
-                  <button
-                    className="text-blue-600 text-sm hover:text-blue-800 hover:underline flex items-center"
-                  >
-                    View Stores <span className="ml-1">→</span>
-                  </button>
+                  {/* Cart buttons for books */}
+                  {!cartItems[book._id] ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(book, "book");
+                      }}
+                      disabled={book.status === "Out of Stock" || cartLoading}
+                      className={`flex items-center gap-1 px-3 py-1 rounded-md ${
+                        book.status === "Out of Stock" || cartLoading
+                          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          : "bg-blue-500 text-white hover:bg-blue-600"
+                      }`}
+                    >
+                      {cartLoading ? (
+                        <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                      ) : (
+                        <FaShoppingCart className="text-sm" />
+                      )}
+                      <span>{book.status === "Out of Stock" ? "Out of Stock" : "Add to Cart"}</span>
+                    </button>
+                  ) : (
+                    <div className="flex items-center border border-gray-200 rounded-md">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateQuantity(book._id, -1, "book");
+                        }}
+                        disabled={cartLoading}
+                        className={`p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-l-md ${
+                          cartLoading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                      >
+                        <FaMinus size={12} />
+                      </button>
+                      <span className="px-3 py-1 text-center min-w-8">
+                        {cartItems[book._id]}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateQuantity(book._id, 1, "book");
+                        }}
+                        disabled={cartLoading}
+                        className={`p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-md ${
+                          cartLoading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                      >
+                        <FaPlus size={12} />
+                      </button>
+                    </div>
+                  )}
                 </div>
-                
-                {cartItems[book._id] && (
-                  <div className="mt-2 text-sm text-green-600 font-semibold">
-                    {cartItems[book._id]} in cart
-                  </div>
-                )}
               </div>
             ))
           ) : (
@@ -323,31 +549,38 @@ const ShopByProduct = ({ onBookSelect }) => {
                     )}
                   </div>
                   
-                  {/* Changed cart button for stationery */}
+                  {/* Cart buttons for stationery items - now with backend integration */}
                   {!cartItems[product._id] ? (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        addToCart(product._id);
+                        addToCart(product, "stationery");
                       }}
-                      disabled={product.status === "Out of Stock"}
+                      disabled={product.status === "Out of Stock" || cartLoading}
                       className={`flex items-center gap-1 px-3 py-1 rounded-md ${
-                        product.status === "Out of Stock"
+                        product.status === "Out of Stock" || cartLoading
                           ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                           : "bg-blue-500 text-white hover:bg-blue-600"
                       }`}
                     >
-                      <FaShoppingCart className="text-sm" />
-                      <span>Add to Cart</span>
+                      {cartLoading ? (
+                        <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                      ) : (
+                        <FaShoppingCart className="text-sm" />
+                      )}
+                      <span>{product.status === "Out of Stock" ? "Out of Stock" : "Add to Cart"}</span>
                     </button>
                   ) : (
                     <div className="flex items-center border border-gray-200 rounded-md">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          removeFromCart(product._id);
+                          updateQuantity(product._id, -1, "stationery");
                         }}
-                        className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-l-md"
+                        disabled={cartLoading}
+                        className={`p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-l-md ${
+                          cartLoading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
                       >
                         <FaMinus size={12} />
                       </button>
@@ -357,9 +590,12 @@ const ShopByProduct = ({ onBookSelect }) => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          addToCart(product._id);
+                          updateQuantity(product._id, 1, "stationery");
                         }}
-                        className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-md"
+                        disabled={cartLoading}
+                        className={`p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-md ${
+                          cartLoading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
                       >
                         <FaPlus size={12} />
                       </button>
