@@ -240,7 +240,7 @@ const HeroSection = () => {
             className="hidden md:block mx-auto mb-4 h-24 sm:h-28 md:h-32 lg:h-40"
           />
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4">
-            Online Mega Store For Learning Essentials
+            Online Megastore For Learning Essentials
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-white/90 mb-4 sm:mb-6 md:mb-8">
             Books, stationery, school supplies and more — all in one place

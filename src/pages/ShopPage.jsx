@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import ShopBySchool from "../components/ShopBySchool";
 import ShopByProduct from "../components/ShopByProduct";
 import ShopByDemand from "../components/ShopByDemand";
+import ShopByStores from "../components/ShopByStores"; // Add this import
 import StoresViewBooks from "../components/StoresViewBooks";
 import Header from "../components/Header";
 import toonzkartLogo from "../assets/toonzkart_logo.png";
@@ -67,6 +68,20 @@ const ShopPage = () => {
         </button>
         <button
           className={`flex-1 px-2 py-2 text-xs sm:text-sm font-medium flex flex-col items-center justify-center transition-all duration-300 ${
+            activeTab === "stores"
+              ? "text-blue-600 border-b-2 border-blue-600"
+              : "text-gray-600"
+          }`}
+          onClick={() => {
+            setActiveTab("stores");
+            setSelectedBook(null); // Reset selected book when switching tabs
+          }}
+        >
+          <span className="text-lg mb-1">🏪</span>
+          <span className="whitespace-nowrap">Stores</span>
+        </button>
+        <button
+          className={`flex-1 px-2 py-2 text-xs sm:text-sm font-medium flex flex-col items-center justify-center transition-all duration-300 ${
             activeTab === "product"
               ? "text-blue-600 border-b-2 border-blue-600"
               : "text-gray-600"
@@ -123,6 +138,19 @@ const ShopPage = () => {
         </button>
         <button
           className={`px-8 py-3 mx-3 text-xl font-semibold flex items-center transition-all duration-300 ${
+            activeTab === "stores"
+              ? "text-blue-600 border-b-4 border-blue-600"
+              : "text-gray-600"
+          }`}
+          onClick={() => {
+            setActiveTab("stores");
+            setSelectedBook(null); // Reset selected book when switching tabs
+          }}
+        >
+          🏪 Shop by Stores
+        </button>
+        <button
+          className={`px-8 py-3 mx-3 text-xl font-semibold flex items-center transition-all duration-300 ${
             activeTab === "product"
               ? "text-blue-600 border-b-4 border-blue-600"
               : "text-gray-600"
@@ -169,6 +197,7 @@ const ShopPage = () => {
       {/* Content Section */}
       <div className="w-full mx-auto bg-white shadow-lg">
         {activeTab === "school" && <ShopBySchool />}
+        {activeTab === "stores" && <ShopByStores />}
         {activeTab === "product" && (
           selectedBook ? (
             <StoresViewBooks selectedBook={selectedBook} onBack={handleBackFromStores} />
