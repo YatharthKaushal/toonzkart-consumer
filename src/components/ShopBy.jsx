@@ -11,7 +11,7 @@ const categories = [
   {
     title: "Shop by Stores",
     subtitle: "Explore books available at partner stores",
-    image: "https://res.cloudinary.com/dco22xvey/image/upload/v1742477682/3_mnuhos.png",
+    image: "https://im.hunt.in/cg/bokaro/City-Guide/BHFDG.jpg",
     tabId: "stores",
   },
   {
