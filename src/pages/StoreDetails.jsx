@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Info, Phone, Navigation, Share, Star, Clock, FileText, Book, ShoppingCart, Filter, Search, ArrowLeft } from 'lucide-react';
+import { Info, Phone, Navigation, Share, Star, Clock, FileText, Book, ShoppingCart, Filter, Search, ArrowLeft, Menu, X } from 'lucide-react';
 import Header from '../components/Header';
 import toonzkartLogo from "../assets/toonzkart_logo.png";
 
 const API_BASE_URL = "https://backend-lzb7.onrender.com"; // Backend API URL
 
 const StoreDetails = () => {
-  // Changed from storeId to id to match the route parameter
   const { id } = useParams();
   const navigate = useNavigate();
   
@@ -23,26 +22,29 @@ const StoreDetails = () => {
   const [booksLoading, setBooksLoading] = useState(true);
   const [booksError, setBooksError] = useState("");
   
-  // Use local state for cart items and quantities
+  // Cart state
   const [cartItems, setCartItems] = useState([]);
   const [bookQuantities, setBookQuantities] = useState({});
-  
+  const [cartLoading, setCartLoading] = useState(false);
+  const [cartError, setCartError] = useState("");
+  const [cartSuccess, setCartSuccess] = useState("");
+
+  // UI state
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All Books');
   const [activeSubject, setActiveSubject] = useState(null);
   const [showSchools, setShowSchools] = useState(true);
   
-  // Add cart API related states
-  const [cartLoading, setCartLoading] = useState(false);
-  const [cartError, setCartError] = useState("");
-  const [cartSuccess, setCartSuccess] = useState("");
+  // Mobile-specific state
+  const [showFilters, setShowFilters] = useState(false);
+  const [showSearchBar, setShowSearchBar] = useState(false);
+  const [showStoreInfo, setShowStoreInfo] = useState(false);
 
   // Fetch store details from API
   useEffect(() => {
     const fetchStoreDetails = async () => {
       setLoading(true);
       try {
-        // Use id parameter instead of storeId
         console.log("Fetching store with ID:", id);
         const response = await axios.get(`${API_BASE_URL}/api/stores/${id}`);
         console.log("Store API Response:", response.data);
@@ -127,6 +129,10 @@ const StoreDetails = () => {
       setShowSchools(true);
     } else {
       setShowSchools(false);
+    }
+    // On mobile, close the filters sidebar after selection
+    if (window.innerWidth < 768) {
+      setShowFilters(false);
     }
   };
 
@@ -385,11 +391,26 @@ const StoreDetails = () => {
     }
   }, [storeBooks]);
 
+  // Toggle mobile search bar
+  const toggleSearchBar = () => {
+    setShowSearchBar(!showSearchBar);
+  };
+
+  // Toggle mobile filters
+  const toggleFilters = () => {
+    setShowFilters(!showFilters);
+  };
+
+  // Toggle store info
+  const toggleStoreInfo = () => {
+    setShowStoreInfo(!showStoreInfo);
+  };
+
   // Error state for the entire page only if completely failed
   if (error && !store) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center p-4">
           <div className="text-red-500 text-lg mb-2">Error</div>
           <p className="text-gray-600">{error}</p>
           <button 
@@ -412,119 +433,201 @@ const StoreDetails = () => {
 
       {/* Cart Status Messages */}
       {cartSuccess && (
-        <div className="fixed top-20 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
+        <div className="fixed top-16 left-0 right-0 mx-auto w-full max-w-xs md:right-4 md:left-auto md:mx-0 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
           <span className="block sm:inline">{cartSuccess}</span>
         </div>
       )}
       
       {cartError && (
-        <div className="fixed top-20 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+        <div className="fixed top-16 left-0 right-0 mx-auto w-full max-w-xs md:right-4 md:left-auto md:mx-0 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
           <span className="block sm:inline">{cartError}</span>
         </div>
       )}
 
-      <div className="w-full px-6 pt-6">
-        {/* Back Button */}
+      <div className="w-full px-4 pt-4 md:px-6 md:pt-6">
+        {/* Back Button - simplified for mobile */}
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 mb-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+          className="flex items-center gap-1 mb-4 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm md:text-base md:gap-2 md:px-4 md:py-2"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={16} />
           <span>Back</span>
         </button>
         
         {/* Bookstore Info */}
-        <div className="mb-6 relative">
+        <div className="mb-4 md:mb-6">
           {loading ? (
-            <div className="p-6 bg-white rounded-md shadow-sm">
+            <div className="p-4 bg-white rounded-md shadow-sm">
               <div className="animate-pulse">
                 <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
                 <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
                 <div className="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="flex space-x-2 mb-6">
-                  <div className="h-10 bg-gray-200 rounded w-24"></div>
-                  <div className="h-10 bg-gray-200 rounded w-24"></div>
-                  <div className="h-10 bg-gray-200 rounded w-24"></div>
-                  <div className="h-10 bg-gray-200 rounded w-32"></div>
-                </div>
               </div>
             </div>
           ) : (
             <>
-              <h1 className="text-3xl font-bold mb-1">{store?.storeName || "Store"}</h1>
-              <p className="text-gray-600 mb-1">{store?.description || "Books and more"}</p>
-              <p className="text-gray-500 mb-3">{store?.address || "Loading address..."}</p>
-              
-              <div className="flex items-center mb-4">
-                <div className="flex items-center">
-                  <Clock size={16} className="text-gray-400 mr-1" />
-                  <span className="text-gray-500 mr-1">Open now -</span>
-                  <span className="text-gray-700">{formatStoreHours(store?.storeHours)} (Today)</span>
-                  <Info size={16} className="text-gray-400 ml-1" />
+              <div className="flex justify-between items-start">
+                <div>
+                  <h1 className="text-xl md:text-3xl font-bold mb-1">{store?.storeName || "Store"}</h1>
+                  <p className="text-sm text-gray-600 mb-1">{store?.description || "Books and more"}</p>
+                  <p className="text-xs md:text-sm text-gray-500 mb-2">{store?.address || "Loading address..."}</p>
                 </div>
-                <span className="mx-3 text-gray-300">|</span>
+
+                {/* Ratings Section for Mobile - Moved here for better mobile layout */}
+                <div className="flex flex-col gap-2">
+                  <div className="bg-blue-600 text-white p-1 md:p-2 rounded flex items-center text-xs">
+                    <span className="font-bold mr-1">4.2</span>
+                    <Star size={12} fill="white" />
+                    <div className="ml-1 text-xs hidden md:block">
+                      <div>235</div>
+                      <div>Store Ratings</div>
+                    </div>
+                  </div>
+                  <div className="bg-green-600 text-white p-1 md:p-2 rounded flex items-center text-xs">
+                    <span className="font-bold mr-1">4.5</span>
+                    <Star size={12} fill="white" />
+                    <div className="ml-1 text-xs hidden md:block">
+                      <div>1.2K</div>
+                      <div>Delivery Ratings</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Mobile-friendly store hours row */}
+              <div className="flex flex-wrap items-center mb-2 text-xs md:text-sm">
+                <div className="flex items-center mr-4">
+                  <Clock size={12} className="text-gray-400 mr-1" />
+                  <span className="text-gray-500 mr-1">Open:</span>
+                  <span className="text-gray-700">{formatStoreHours(store?.storeHours)}</span>
+                </div>
                 <div className="flex items-center">
-                  <Phone size={16} className="text-gray-400 mr-1" />
+                  <Phone size={12} className="text-gray-400 mr-1" />
                   <span className="text-blue-600 hover:underline cursor-pointer">{store?.phoneNumber || "N/A"}</span>
                 </div>
               </div>
               
-              <div className="flex space-x-2 mb-6">
-                <button className="flex items-center px-4 py-2 border rounded-md hover:bg-blue-50 transition-colors">
-                  <Navigation size={16} className="mr-1 text-blue-600" />
+              {/* Mobile action buttons in horizontal scroll */}
+              <div className="flex overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:pb-0 md:overflow-visible md:flex-wrap">
+                <button className="flex-shrink-0 flex items-center px-3 py-1 md:px-4 md:py-2 mr-2 border rounded-md hover:bg-blue-50 transition-colors text-xs md:text-sm">
+                  <Navigation size={14} className="mr-1 text-blue-600" />
                   <span>Direction</span>
                 </button>
-                <button className="flex items-center px-4 py-2 border rounded-md hover:bg-blue-50 transition-colors">
-                  <Share size={16} className="mr-1 text-blue-600" />
+                <button className="flex-shrink-0 flex items-center px-3 py-1 md:px-4 md:py-2 mr-2 border rounded-md hover:bg-blue-50 transition-colors text-xs md:text-sm">
+                  <Share size={14} className="mr-1 text-blue-600" />
                   <span>Share</span>
                 </button>
-                <button className="flex items-center px-4 py-2 border rounded-md hover:bg-blue-50 transition-colors">
-                  <FileText size={16} className="mr-1 text-blue-600" />
+                <button className="flex-shrink-0 flex items-center px-3 py-1 md:px-4 md:py-2 mr-2 border rounded-md hover:bg-blue-50 transition-colors text-xs md:text-sm">
+                  <FileText size={14} className="mr-1 text-blue-600" />
                   <span>Reviews</span>
                 </button>
-                <button className="flex items-center px-4 py-2 border rounded-md hover:bg-blue-50 transition-colors">
-                  <Book size={16} className="mr-1 text-blue-600" />
-                  <span>Book an Appointment</span>
+                <button className="flex-shrink-0 flex items-center px-3 py-1 md:px-4 md:py-2 mr-2 border rounded-md hover:bg-blue-50 transition-colors text-xs md:text-sm">
+                  <Book size={14} className="mr-1 text-blue-600" />
+                  <span>Book Appointment</span>
                 </button>
               </div>
             </>
           )}
-
-          {/* Ratings Section - Fixed alignment */}
-          <div className="absolute top-0 right-0 flex space-x-4">
-            {loading ? (
-              <div className="flex space-x-4">
-                <div className="w-28 h-16 bg-gray-200 rounded animate-pulse"></div>
-                <div className="w-28 h-16 bg-gray-200 rounded animate-pulse"></div>
-              </div>
-            ) : (
-              <>
-                <div className="bg-blue-600 text-white p-2 rounded flex items-center">
-                  <span className="font-bold mr-1">4.2</span>
-                  <Star size={16} fill="white" />
-                  <div className="ml-2 text-xs">
-                    <div>235</div>
-                    <div>Store Ratings</div>
-                  </div>
-                </div>
-                <div className="bg-green-600 text-white p-2 rounded flex items-center">
-                  <span className="font-bold mr-1">4.5</span>
-                  <Star size={16} fill="white" />
-                  <div className="ml-2 text-xs">
-                    <div>1.2K</div>
-                    <div>Delivery Ratings</div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
         </div>
 
         {/* Browse Books Section */}
-        <div className="flex pb-8">
-          {/* Book Categories */}
-          <div className="w-64 mr-8">
+        <div className="flex flex-col md:flex-row pb-8">
+          {/* Mobile filter and search bar */}
+          <div className="sticky top-16 z-40 bg-white border-b pb-2 mb-4 md:hidden">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <button 
+                  onClick={toggleFilters}
+                  className="flex items-center border px-3 py-1 rounded-md text-sm mr-2"
+                >
+                  <Filter size={14} className="mr-1" />
+                  <span>Filters</span>
+                </button>
+                <select className="border px-3 py-1 rounded-md bg-white text-sm">
+                  <option>Sort</option>
+                  <option>Price: Low to High</option>
+                  <option>Price: High to Low</option>
+                </select>
+              </div>
+              <button 
+                onClick={toggleSearchBar}
+                className="p-2 rounded-md border"
+              >
+                <Search size={16} className="text-gray-500" />
+              </button>
+            </div>
+            
+            {/* Mobile search bar */}
+            {showSearchBar && (
+              <div className="mt-2 relative">
+                <input
+                  type="text"
+                  placeholder="Search within store"
+                  className="w-full pl-8 pr-4 py-2 border rounded-md"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  autoFocus
+                />
+                <Search size={16} className="absolute left-3 top-3 text-gray-400" />
+                <button 
+                  className="absolute right-3 top-3 text-gray-400"
+                  onClick={() => setSearchQuery('')}
+                >
+                  {searchQuery && <X size={16} />}
+                </button>
+              </div>
+            )}
+          </div>
+          
+          {/* Mobile sidebar drawer */}
+          {showFilters && (
+            <div className="fixed inset-0 z-50 md:hidden">
+              <div 
+                className="absolute inset-0 bg-black bg-opacity-50"
+                onClick={toggleFilters}
+              ></div>
+              <div className="absolute top-0 left-0 h-full w-3/4 max-w-xs bg-white p-4 overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-semibold text-gray-800">Categories</h3>
+                  <button onClick={toggleFilters}>
+                    <X size={20} />
+                  </button>
+                </div>
+                <ul className="mb-6">
+                  {bookCategories.map(category => (
+                    <li 
+                      key={category.name}
+                      onClick={() => handleCategoryClick(category.name)}
+                      className={`p-3 cursor-pointer hover:bg-blue-50 transition-colors ${category.active ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700'}`}
+                    >
+                      {category.name} ({category.count})
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Store Information in mobile sidebar */}
+                <div className="bg-blue-50 p-4 rounded-md mb-4">
+                  <h3 className="font-semibold text-gray-800 mb-2">Store Info</h3>
+                  {loading ? (
+                    <div className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                    </div>
+                  ) : (
+                    <div className="text-sm">
+                      <p className="mb-1"><span className="font-medium">Manager:</span> {store?.managerName || "Not specified"}</p>
+                      <p className="mb-1"><span className="font-medium">Email:</span> {store?.email || "Not specified"}</p>
+                      <p className="mb-1"><span className="font-medium">Phone:</span> {store?.phoneNumber || "Not specified"}</p>
+                      <p className="mb-1"><span className="font-medium">Website:</span> {store?.website || "Not specified"}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Desktop Book Categories */}
+          <div className="hidden md:block w-64 mr-8">
             <h3 className="font-semibold text-gray-800 mb-2 px-3">Categories</h3>
             <ul className="mb-6">
               {bookCategories.map(category => (
@@ -538,7 +641,7 @@ const StoreDetails = () => {
               ))}
             </ul>
 
-            {/* Store Information */}
+            {/* Desktop Store Information */}
             <div className="bg-blue-50 p-4 rounded-md mb-6">
               <h3 className="font-semibold text-gray-800 mb-2">Store Info</h3>
               {loading ? (
@@ -559,7 +662,8 @@ const StoreDetails = () => {
           
           {/* Book Listings */}
           <div className="flex-1">
-            <div className="flex justify-between items-center mb-4">
+            {/* Desktop header with search and filters */}
+            <div className="hidden md:flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">{activeCategory}</h2>
               <div className="flex items-center space-x-2">
                 <button className="flex items-center border px-3 py-1 rounded-md hover:bg-gray-50">
@@ -572,20 +676,6 @@ const StoreDetails = () => {
                   <option>Price: High to Low</option>
                   <option>Newest Arrivals</option>
                 </select>
-              </div>
-            </div>
-
-            <div className="flex items-center text-gray-500 mb-6">
-              <div className="flex items-center mr-4">
-                <ShoppingCart size={16} className="mr-1" />
-                <span>Free delivery on orders above ₹499</span>
-              </div>
-              <div className="flex items-center">
-                <Clock size={16} className="mr-1" />
-                <span>Delivery in 24-48 hrs</span>
-              </div>
-              
-              <div className="ml-auto">
                 <div className="relative">
                   <Search size={16} className="absolute left-3 top-3 text-gray-400" />
                   <input
@@ -598,25 +688,41 @@ const StoreDetails = () => {
                 </div>
               </div>
             </div>
+
+            <div className="hidden md:flex items-center text-gray-500 mb-6">
+              <div className="flex items-center mr-4">
+                <ShoppingCart size={16} className="mr-1" />
+                <span>Free delivery on orders above ₹499</span>
+              </div>
+              <div className="flex items-center">
+                <Clock size={16} className="mr-1" />
+                <span>Delivery in 24-48 hrs</span>
+              </div>
+            </div>
+            
+            {/* Mobile category title */}
+            <div className="md:hidden mb-3">
+              <h2 className="text-lg font-bold">{activeCategory}</h2>
+            </div>
             
             {/* Inventory Information */}
-            <div className="mb-6 p-4 bg-blue-50 rounded-md">
+            <div className="mb-4 p-3 md:p-4 bg-blue-50 rounded-md text-sm">
               {booksLoading ? (
                 <div className="animate-pulse">
-                  <div className="h-6 bg-gray-200 rounded w-1/3 mb-3"></div>
-                  <div className="h-4 bg-gray-200 rounded w-2/3 mb-3"></div>
+                  <div className="h-5 bg-gray-200 rounded w-1/3 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
                 </div>
               ) : storeBooks.length > 0 ? (
                 <>
-                  <h3 className="font-bold text-blue-800 mb-2">Store Inventory</h3>
-                  <p className="text-gray-700 mb-2">
+                  <h3 className="font-bold text-blue-800 mb-1 md:mb-2">Store Inventory</h3>
+                  <p className="text-gray-700 text-xs md:text-sm">
                     We have {storeBooks.length} books available in our store.
                   </p>
                 </>
               ) : (
                 <>
-                  <h3 className="font-bold text-blue-800 mb-2">No Books Available</h3>
-                  <p className="text-gray-700 mb-2">
+                  <h3 className="font-bold text-blue-800 mb-1 md:mb-2">No Books Available</h3>
+                  <p className="text-gray-700 text-xs md:text-sm">
                     Sorry, this store currently doesn't have any books in inventory.
                   </p>
                 </>
@@ -625,32 +731,32 @@ const StoreDetails = () => {
             
             {/* Books Error Message */}
             {booksError && (
-              <div className="mb-6 p-4 bg-red-50 rounded-md border border-red-200">
+              <div className="mb-4 p-3 md:p-4 bg-red-50 rounded-md border border-red-200">
                 <h3 className="font-bold text-red-800 mb-2">Error Loading Books</h3>
-                <p className="text-gray-700">{booksError}</p>
+                <p className="text-gray-700 text-sm">{booksError}</p>
               </div>
             )}
             
-            {/* Book Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {/* Book Grid - Adjusted for mobile */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
               {booksLoading ? (
                 // Loading placeholders for books
                 Array(4).fill().map((_, index) => (
-                  <div key={index} className="border rounded-md p-3 flex flex-col h-full">
+                  <div key={index} className="border rounded-md p-2 md:p-3 flex flex-col h-full">
                     <div className="animate-pulse">
-                      <div className="h-40 mb-2 bg-gray-200 rounded"></div>
-                      <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                      <div className="h-32 md:h-40 mb-2 bg-gray-200 rounded"></div>
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
                       <div className="h-3 bg-gray-200 rounded w-1/3 mb-3"></div>
                       <div className="h-5 bg-gray-200 rounded w-1/4 mb-3"></div>
-                      <div className="h-10 bg-gray-200 rounded w-full mt-auto"></div>
+                      <div className="h-8 bg-gray-200 rounded w-full mt-auto"></div>
                     </div>
                   </div>
                 ))
               ) : displayedBooks.length > 0 ? (
                 displayedBooks.map(book => (
-                  <div key={book._id} className="border rounded-md p-3 hover:shadow-md transition-shadow flex flex-col h-full">
-                    <div className="h-40 mb-2 bg-gray-100 flex items-center justify-center rounded overflow-hidden">
+                  <div key={book._id} className="border rounded-md p-2 md:p-3 hover:shadow-md transition-shadow flex flex-col h-full">
+                    <div className="h-32 md:h-40 mb-2 bg-gray-100 flex items-center justify-center rounded overflow-hidden">
                       {book.image ? (
                         <img 
                           src={`${book.image}`} 
@@ -662,31 +768,31 @@ const StoreDetails = () => {
                           }}
                         />
                       ) : (
-                        <div className="text-gray-400 text-center p-4">No Image Available</div>
+                        <div className="text-gray-400 text-center text-xs p-2 md:p-4 md:text-sm">No Image Available</div>
                       )}
                     </div>
-                    <h4 className="font-medium text-gray-800 line-clamp-2">{book.title}</h4>
-                    <p className="text-sm text-gray-500">{book.author}</p>
+                    <h4 className="font-medium text-gray-800 text-sm md:text-base line-clamp-2">{book.title}</h4>
+                    <p className="text-xs md:text-sm text-gray-500 line-clamp-1">{book.author}</p>
                     <p className="text-xs text-gray-400">{book.publisher || book.category}</p>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="font-bold">{formatPrice(book.price)}</span>
+                    <div className="flex justify-between items-center mt-1 md:mt-2">
+                      <span className="font-bold text-sm md:text-base">{formatPrice(book.price)}</span>
                       {book.originalPrice && book.originalPrice > book.price && (
                         <span className="text-xs text-gray-500 line-through">
                           {formatPrice(book.originalPrice)}
                         </span>
                       )}
                     </div>
-                    <div className="mt-auto pt-3">
+                    <div className="mt-auto pt-2 md:pt-3">
                       {!bookQuantities[book._id] ? (
                         <button 
                           onClick={() => addToCart(book)}
-                          className={`w-full bg-blue-600 text-white py-2 px-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center ${cartLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          className={`w-full bg-blue-600 text-white py-1 md:py-2 px-2 md:px-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center text-xs md:text-sm ${cartLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                           disabled={book.status === "Out of Stock" || cartLoading}
                         >
                           {cartLoading ? (
-                            <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin mr-2"></div>
+                            <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin mr-1"></div>
                           ) : (
-                            <ShoppingCart size={16} className="mr-2" />
+                            <ShoppingCart size={14} className="mr-1" />
                           )}
                           <span>{book.status === "Out of Stock" ? "Out of Stock" : "Add to Cart"}</span>
                         </button>
@@ -694,15 +800,15 @@ const StoreDetails = () => {
                         <div className="w-full flex items-center justify-between border border-blue-600 rounded-md">
                           <button 
                             onClick={() => updateQuantity(book._id, -1)}
-                            className={`bg-blue-600 text-white py-1 px-3 rounded-l-md hover:bg-blue-700 transition-colors ${cartLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-l-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${cartLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             disabled={cartLoading}
                           >
                             -
                           </button>
-                          <span className="px-3">{bookQuantities[book._id]}</span>
+                          <span className="px-2 text-sm">{bookQuantities[book._id]}</span>
                           <button 
                             onClick={() => updateQuantity(book._id, 1)}
-                            className={`bg-blue-600 text-white py-1 px-3 rounded-r-md hover:bg-blue-700 transition-colors ${cartLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-r-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${cartLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             disabled={cartLoading}
                           >
                             +
@@ -713,14 +819,14 @@ const StoreDetails = () => {
                   </div>
                 ))
               ) : (
-                <div className="col-span-full text-center p-8 bg-gray-50 rounded-md">
-                  <p className="text-gray-500">No books found matching your criteria.</p>
+                <div className="col-span-full text-center p-4 md:p-8 bg-gray-50 rounded-md">
+                  <p className="text-gray-500 text-sm md:text-base">No books found matching your criteria.</p>
                   <button
                     onClick={() => {
                       setActiveCategory('All Books');
                       setSearchQuery('');
                     }}
-                    className="mt-4 text-blue-600 hover:underline"
+                    className="mt-3 text-blue-600 hover:underline text-sm"
                   >
                     Reset filters
                   </button>

@@ -2,77 +2,22 @@ import React, { useState, useEffect, useRef } from "react";
 import { FaMapMarkerAlt, FaBars } from "react-icons/fa";
 import { ShoppingCart, User, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import toonzkartLogo from "../assets/toonzkart_logo.png";
-
-const API_BASE_URL = "https://backend-lzb7.onrender.com";
 
 const Header = ({ logo }) => {
   const navigate = useNavigate();
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [cartItemsCount, setCartItemsCount] = useState(0);
-  const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
-  
-  // Fetch cart items count
-  useEffect(() => {
-    const fetchCartItems = async () => {
-      if (!isLoggedIn) {
-        setCartItemsCount(0);
-        return;
-      }
-      
-      setLoading(true);
-      try {
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-          console.error('No auth token found');
-          setCartItemsCount(0);
-          return;
-        }
-        
-        const response = await axios.get(`${API_BASE_URL}/api/cart`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        
-        // Calculate total items by summing all quantities
-        if (response.data && response.data.items) {
-          const totalItems = response.data.items.reduce((sum, item) => sum + item.quantity, 0);
-          setCartItemsCount(totalItems);
-        } else {
-          setCartItemsCount(0);
-        }
-      } catch (error) {
-        console.error('Error fetching cart items:', error);
-        setCartItemsCount(0);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCartItems();
-    
-    // Set up polling to refresh cart count every minute
-    const intervalId = setInterval(fetchCartItems, 60000);
-    
-    // Clean up the interval on component unmount
-    return () => clearInterval(intervalId);
-  }, [isLoggedIn]);
   
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userName');
     localStorage.removeItem('userEmail');
-    localStorage.removeItem('token');
     setIsDropdownOpen(false);
     setIsMobileMenuOpen(false);
-    setCartItemsCount(0);
     navigate('/login');
   };
   
@@ -160,11 +105,6 @@ const Header = ({ logo }) => {
           <div className="flex items-center space-x-5">
             <Link to="/cart" className="relative">
               <ShoppingCart size={24} className="text-gray-700" />
-              {cartItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                  {cartItemsCount > 99 ? '99+' : cartItemsCount}
-                </span>
-              )}
             </Link>
             <div className="flex items-center space-x-2">
               <div 
@@ -196,11 +136,7 @@ const Header = ({ logo }) => {
         {isLoggedIn && (
           <Link to="/cart" className="relative mr-1">
             <ShoppingCart size={20} className="text-gray-700" />
-            {cartItemsCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                {cartItemsCount > 99 ? '99+' : cartItemsCount}
-              </span>
-            )}
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">3</span>
           </Link>
         )}
         <button 
@@ -258,13 +194,8 @@ const Header = ({ logo }) => {
                       </Link>
                     </li>
                     <li>
-                      <Link to="/cart" className="flex items-center py-2 text-gray-700 hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Link to="/cart" className="block py-2 text-gray-700 hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
                         Cart
-                        {cartItemsCount > 0 && (
-                          <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                            {cartItemsCount}
-                          </span>
-                        )}
                       </Link>
                     </li>
                     <li className="border-t border-gray-200 pt-2 mt-4">
