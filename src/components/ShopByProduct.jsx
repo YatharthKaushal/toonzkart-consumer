@@ -511,6 +511,7 @@ const ShopByProduct = ({ onBookSelect }) => {
                 key={product._id}
                 className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1"
               >
+
                 <div className="h-48 mb-3 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
                   {product.image ? (
                     <div className="w-full h-full flex items-center justify-center p-2">
@@ -524,6 +525,8 @@ const ShopByProduct = ({ onBookSelect }) => {
                         }}
                       />
                     </div>
+
+                    
                   ) : (
                     <div className="flex flex-col items-center justify-center text-center p-4">
                       {getCategoryIcon(product.category)}
