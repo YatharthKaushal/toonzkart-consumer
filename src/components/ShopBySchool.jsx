@@ -79,7 +79,7 @@ const ShopBySchool = () => {
               </div>
               <h3 className="text-lg font-semibold mt-3 text-gray-800">{school.name}</h3>
               <p className="text-gray-600 flex items-center">
-                <FaMapMarkerAlt className="text-red-500 mr-2" /> {school.location.city}
+                <FaMapMarkerAlt className="text-red-500 mr-2" /> {school.city}
               </p>
             </div>
           ))}
