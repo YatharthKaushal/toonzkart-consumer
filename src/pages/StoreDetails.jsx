@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Info, Phone, Navigation, Share, Star, Clock, FileText, Book, ShoppingCart, Filter, Search, ArrowLeft, Menu, X } from 'lucide-react';
+import { Info, Navigation, Share, Star, FileText, Book, ShoppingCart, Filter, Search, ArrowLeft, Menu, X, Flame, MapPin, Clock, Phone } from 'lucide-react';
 import Header from '../components/Header';
 import toonzkartLogo from "../assets/toonzkart_logo.png";
 
@@ -38,7 +38,6 @@ const StoreDetails = () => {
   // Mobile-specific state
   const [showFilters, setShowFilters] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(false);
-  const [showStoreInfo, setShowStoreInfo] = useState(false);
 
   // Fetch store details from API
   useEffect(() => {
@@ -325,11 +324,6 @@ const StoreDetails = () => {
   };
 
   const displayedBooks = getFilteredBooks();
-
-  // Format store hours for display
-  const formatStoreHours = (hours) => {
-    return hours || "9am – 8:30pm"; // Default if not provided
-  };
   
   // Format price with rupee symbol
   const formatPrice = (price) => {
@@ -401,9 +395,9 @@ const StoreDetails = () => {
     setShowFilters(!showFilters);
   };
 
-  // Toggle store info
-  const toggleStoreInfo = () => {
-    setShowStoreInfo(!showStoreInfo);
+  // Navigate to Shop by Demand page
+  const navigateToShopByDemand = () => {
+    navigate('/shop', { state: { activeTab: "demand" } });
   };
 
   // Error state for the entire page only if completely failed
@@ -444,20 +438,21 @@ const StoreDetails = () => {
         </div>
       )}
 
+      {/* Main Content */}
       <div className="w-full px-4 pt-4 md:px-6 md:pt-6">
-        {/* Back Button - simplified for mobile */}
+        {/* Back Button with improved styling */}
         <button
           onClick={handleBack}
-          className="flex items-center gap-1 mb-4 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm md:text-base md:gap-2 md:px-4 md:py-2"
+          className="flex items-center gap-1 mb-4 px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition text-sm md:text-base md:gap-2 md:px-4 shadow-sm"
         >
           <ArrowLeft size={16} />
           <span>Back</span>
         </button>
         
-        {/* Bookstore Info */}
-        <div className="mb-4 md:mb-6">
+        {/* Enhanced Bookstore Info Card */}
+        <div className="mb-6">
           {loading ? (
-            <div className="p-4 bg-white rounded-md shadow-sm">
+            <div className="p-6 bg-white rounded-lg shadow-sm">
               <div className="animate-pulse">
                 <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
                 <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
@@ -465,68 +460,114 @@ const StoreDetails = () => {
               </div>
             </div>
           ) : (
-            <>
-              <div className="flex justify-between items-start">
-                <div>
-                  <h1 className="text-xl md:text-3xl font-bold mb-1">{store?.storeName || "Store"}</h1>
-                  <p className="text-sm text-gray-600 mb-1">{store?.description || "Books and more"}</p>
-                  <p className="text-xs md:text-sm text-gray-500 mb-2">{store?.address || "Loading address..."}</p>
-                </div>
-
-                {/* Ratings Section for Mobile - Moved here for better mobile layout */}
-                <div className="flex flex-col gap-2">
-                  <div className="bg-blue-600 text-white p-1 md:p-2 rounded flex items-center text-xs">
-                    <span className="font-bold mr-1">4.2</span>
-                    <Star size={12} fill="white" />
-                    <div className="ml-1 text-xs hidden md:block">
-                      <div>235</div>
-                      <div>Store Ratings</div>
-                    </div>
-                  </div>
-                  <div className="bg-green-600 text-white p-1 md:p-2 rounded flex items-center text-xs">
-                    <span className="font-bold mr-1">4.5</span>
-                    <Star size={12} fill="white" />
-                    <div className="ml-1 text-xs hidden md:block">
-                      <div>1.2K</div>
-                      <div>Delivery Ratings</div>
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              {/* Store Banner - could be an image in a real implementation */}
+              <div className="h-24 md:h-32 bg-gradient-to-r from-blue-500 to-indigo-600 relative">
+                <div className="absolute inset-0 bg-black opacity-30"></div>
+                <div className="absolute bottom-0 left-0 w-full p-4 text-white">
+                  <div className="flex items-start justify-between">
+                    <h1 className="text-xl md:text-3xl font-bold drop-shadow-sm">{store?.storeName || "Store"}</h1>
+                    
+                    {/* Quick Stats Badge */}
+                    <div className="flex space-x-2">
+                      <div className="bg-white/90 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                        {storeBooks.length} Books
+                      </div>
+                      <div className="bg-white/90 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                        Fast Delivery
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
               
-              {/* Mobile-friendly store hours row */}
-              <div className="flex flex-wrap items-center mb-2 text-xs md:text-sm">
-                <div className="flex items-center mr-4">
-                  <Clock size={12} className="text-gray-400 mr-1" />
-                  <span className="text-gray-500 mr-1">Open:</span>
-                  <span className="text-gray-700">{formatStoreHours(store?.storeHours)}</span>
+              {/* Store Content */}
+              <div className="p-4 md:p-6">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                  {/* Store Info */}
+                  <div className="flex-1">
+                    <p className="text-sm md:text-base text-gray-700 mb-3">{store?.description || "Books and more"}</p>
+                    
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center text-sm text-gray-600">
+                        <MapPin size={16} className="mr-2 text-blue-600 flex-shrink-0" />
+                        <span>{store?.address || "Loading address..."}</span>
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Clock size={16} className="mr-2 text-blue-600 flex-shrink-0" />
+                        <span>Open today: 9:00 AM - 8:00 PM</span>
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Phone size={16} className="mr-2 text-blue-600 flex-shrink-0" />
+                        <span>{store?.phone || "Contact store for details"}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Ratings Cards with enhanced design */}
+                  <div className="flex md:flex-col gap-3 md:w-64">
+                    <div className="flex-1 md:w-full bg-gradient-to-r from-blue-50 to-blue-100 p-3 rounded-lg border border-blue-200">
+                      <div className="flex items-start">
+                        <div className="bg-blue-600 text-white p-2 rounded-md mr-3">
+                          <Star size={18} fill="white" />
+                        </div>
+                        <div>
+                          <div className="flex items-baseline">
+                            <span className="text-2xl font-bold text-blue-800">4.2</span>
+                            <span className="text-sm text-blue-600 ml-1">/5</span>
+                          </div>
+                          <div className="text-xs text-gray-600">Based on 235 store ratings</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 md:w-full bg-gradient-to-r from-green-50 to-green-100 p-3 rounded-lg border border-green-200">
+                      <div className="flex items-start">
+                        <div className="bg-green-600 text-white p-2 rounded-md mr-3">
+                          <ShoppingCart size={18} fill="white" />
+                        </div>
+                        <div>
+                          <div className="flex items-baseline">
+                            <span className="text-2xl font-bold text-green-800">4.5</span>
+                            <span className="text-sm text-green-600 ml-1">/5</span>
+                          </div>
+                          <div className="text-xs text-gray-600">Based on 1.2K delivery ratings</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <Phone size={12} className="text-gray-400 mr-1" />
-                  <span className="text-blue-600 hover:underline cursor-pointer">{store?.phoneNumber || "N/A"}</span>
+                
+                {/* Action Buttons */}
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <button className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm shadow-sm">
+                    <Share size={16} className="mr-2 text-blue-600" />
+                    <span>Share Store</span>
+                  </button>
+                  
+                  <button className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm shadow-sm">
+                    <Navigation size={16} className="mr-2 text-blue-600" />
+                    <span>Get Directions</span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => navigate('/shop', { state: { activeTab: "demand" } })}
+                    className="flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-md hover:from-orange-600 hover:to-orange-700 transition-colors text-sm shadow-md ml-auto"
+                  >
+                    <Flame size={16} className="mr-2" />
+                    <span>Shop By Demand</span>
+                  </button>
+                </div>
+                
+                {/* Delivery Info */}
+                <div className="mt-4 bg-blue-50 rounded-md p-3 flex items-center text-sm text-blue-800">
+                  <ShoppingCart size={16} className="mr-2 text-blue-600" />
+                  <span>Free delivery on orders above ₹499</span>
                 </div>
               </div>
-              
-              {/* Mobile action buttons in horizontal scroll */}
-              <div className="flex overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:pb-0 md:overflow-visible md:flex-wrap">
-                <button className="flex-shrink-0 flex items-center px-3 py-1 md:px-4 md:py-2 mr-2 border rounded-md hover:bg-blue-50 transition-colors text-xs md:text-sm">
-                  <Navigation size={14} className="mr-1 text-blue-600" />
-                  <span>Direction</span>
-                </button>
-                <button className="flex-shrink-0 flex items-center px-3 py-1 md:px-4 md:py-2 mr-2 border rounded-md hover:bg-blue-50 transition-colors text-xs md:text-sm">
-                  <Share size={14} className="mr-1 text-blue-600" />
-                  <span>Share</span>
-                </button>
-                <button className="flex-shrink-0 flex items-center px-3 py-1 md:px-4 md:py-2 mr-2 border rounded-md hover:bg-blue-50 transition-colors text-xs md:text-sm">
-                  <FileText size={14} className="mr-1 text-blue-600" />
-                  <span>Reviews</span>
-                </button>
-                <button className="flex-shrink-0 flex items-center px-3 py-1 md:px-4 md:py-2 mr-2 border rounded-md hover:bg-blue-50 transition-colors text-xs md:text-sm">
-                  <Book size={14} className="mr-1 text-blue-600" />
-                  <span>Book Appointment</span>
-                </button>
-              </div>
-            </>
+            </div>
           )}
         </div>
 
@@ -605,22 +646,22 @@ const StoreDetails = () => {
                   ))}
                 </ul>
 
-                {/* Store Information in mobile sidebar */}
-                <div className="bg-blue-50 p-4 rounded-md mb-4">
-                  <h3 className="font-semibold text-gray-800 mb-2">Store Info</h3>
-                  {loading ? (
-                    <div className="animate-pulse">
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                    </div>
-                  ) : (
-                    <div className="text-sm">
-                      <p className="mb-1"><span className="font-medium">Manager:</span> {store?.managerName || "Not specified"}</p>
-                      <p className="mb-1"><span className="font-medium">Email:</span> {store?.email || "Not specified"}</p>
-                      <p className="mb-1"><span className="font-medium">Phone:</span> {store?.phoneNumber || "Not specified"}</p>
-                      <p className="mb-1"><span className="font-medium">Website:</span> {store?.website || "Not specified"}</p>
-                    </div>
-                  )}
+                {/* Shop by Demand button in mobile drawer */}
+                <div className="bg-gradient-to-r from-orange-100 to-yellow-100 p-3 rounded-md mb-4">
+                  <h3 className="font-semibold text-orange-800 mb-2 flex items-center text-sm">
+                    <Flame size={14} className="text-orange-600 mr-1" />
+                    Need something specific?
+                  </h3>
+                  <button 
+                    onClick={() => {
+                      toggleFilters(); // Close the filter drawer
+                      navigate('/shop', { state: { activeTab: "demand" } });
+                    }}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-3 rounded-md transition-colors flex items-center justify-center text-sm"
+                  >
+                    <Flame size={14} className="mr-1" />
+                    Shop by Demand
+                  </button>
                 </div>
               </div>
             </div>
@@ -641,22 +682,22 @@ const StoreDetails = () => {
               ))}
             </ul>
 
-            {/* Desktop Store Information */}
-            <div className="bg-blue-50 p-4 rounded-md mb-6">
-              <h3 className="font-semibold text-gray-800 mb-2">Store Info</h3>
-              {loading ? (
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                </div>
-              ) : (
-                <div className="text-sm">
-                  <p className="mb-1"><span className="font-medium">Manager:</span> {store?.managerName || "Not specified"}</p>
-                  <p className="mb-1"><span className="font-medium">Email:</span> {store?.email || "Not specified"}</p>
-                  <p className="mb-1"><span className="font-medium">Phone:</span> {store?.phoneNumber || "Not specified"}</p>
-                  <p className="mb-1"><span className="font-medium">Website:</span> {store?.website || "Not specified"}</p>
-                </div>
-              )}
+            {/* New Shop by Demand button replacing the old Store Info section */}
+            <div className="bg-gradient-to-r from-orange-100 to-yellow-100 p-4 rounded-md mb-6 shadow-sm">
+              <h3 className="font-semibold text-orange-800 mb-3 flex items-center">
+                <Flame size={18} className="text-orange-600 mr-2" />
+                Looking for something special?
+              </h3>
+              <p className="text-sm text-gray-700 mb-4">
+                Can't find what you need? Try our Shop by Demand feature to request specific books or stationery items.
+              </p>
+              <button 
+                onClick={() => navigate('/shop', { state: { activeTab: "demand" } })}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center"
+              >
+                <Flame size={16} className="mr-2" />
+                Shop by Demand
+              </button>
             </div>
           </div>
           
@@ -693,10 +734,6 @@ const StoreDetails = () => {
               <div className="flex items-center mr-4">
                 <ShoppingCart size={16} className="mr-1" />
                 <span>Free delivery on orders above ₹499</span>
-              </div>
-              <div className="flex items-center">
-                <Clock size={16} className="mr-1" />
-                <span>Delivery in 24-48 hrs</span>
               </div>
             </div>
             

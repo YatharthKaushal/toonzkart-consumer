@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaBook, FaPen, FaSearch, FaShoppingCart, FaPencilAlt, FaEraser, FaFolder, FaQuestion, FaPlus, FaMinus } from "react-icons/fa";
+import { FaBook, FaPen, FaSearch, FaShoppingCart, FaPencilAlt, FaEraser, FaFolder, FaQuestion, FaPlus, FaMinus, FaChevronLeft, FaChevronRight, FaBookOpen, FaBolt, FaNetworkWired } from "react-icons/fa";
 import axios from "axios";
 
 const API_BASE_URL = "https://backend-lzb7.onrender.com";
@@ -15,6 +15,10 @@ const ShopByProduct = ({ onBookSelect }) => {
   const [loadingStationery, setLoadingStationery] = useState(false);
   const [error, setError] = useState("");
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(8);
+  
   // Cart state
   const [cartItems, setCartItems] = useState({});
   const [cartLoading, setCartLoading] = useState(false);
@@ -24,7 +28,7 @@ const ShopByProduct = ({ onBookSelect }) => {
   // Fetch books from API
   useEffect(() => {
     const fetchBooks = async () => {
-      if (activeTab === "books") {
+      if (activeTab === "books" || activeTab === "ncertBooks" || activeTab === "fastMoving") {
         setLoadingBooks(true);
         setError("");
         try {
@@ -46,7 +50,7 @@ const ShopByProduct = ({ onBookSelect }) => {
   // Fetch stationery from API
   useEffect(() => {
     const fetchStationery = async () => {
-      if (activeTab === "stationery") {
+      if (activeTab === "stationery" || activeTab === "notebooks" || activeTab === "fastMoving") {
         setLoadingStationery(true);
         setError("");
         try {
@@ -64,6 +68,11 @@ const ShopByProduct = ({ onBookSelect }) => {
 
     fetchStationery();
   }, [activeTab]);
+  
+  // Reset pagination when changing tabs or search terms
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, search]);
   
   // Fetch current cart to initialize state
   useEffect(() => {
@@ -118,6 +127,76 @@ const ShopByProduct = ({ onBookSelect }) => {
       (book.author && book.author.toLowerCase().includes(search.toLowerCase())) ||
       (book.category && book.category.toLowerCase().includes(search.toLowerCase()))
   );
+  
+  // Filter NCERT books
+  const ncertBooks = filteredBooks.filter(
+    (book) => book.title && book.title.toUpperCase().includes("NCERT")
+  );
+  
+  // Filter notebooks
+  const notebooks = filteredStationery.filter(
+    (product) => product.category === "Notebooks"
+  );
+  
+  // For fast moving products, we'll leave it empty as per instructions
+  // In a real application, you might want to filter based on some criteria like popularity or sales
+  const fastMovingItems = [...filteredBooks, ...filteredStationery];
+  
+  // Determine which items array to use based on active tab
+  let currentItems = [];
+  let totalItems = 0;
+  
+  switch (activeTab) {
+    case "books":
+      currentItems = filteredBooks.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      );
+      totalItems = filteredBooks.length;
+      break;
+    case "stationery":
+      currentItems = filteredStationery.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      );
+      totalItems = filteredStationery.length;
+      break;
+    case "ncertBooks":
+      currentItems = ncertBooks.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      );
+      totalItems = ncertBooks.length;
+      break;
+    case "notebooks":
+      currentItems = notebooks.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      );
+      totalItems = notebooks.length;
+      break;
+    case "fastMoving":
+      currentItems = fastMovingItems.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      );
+      totalItems = fastMovingItems.length;
+      break;
+    default:
+      currentItems = filteredBooks.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      );
+      totalItems = filteredBooks.length;
+  }
+  
+  // Calculate total pages
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const nextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  const prevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
 
   // Add to cart function using API
   const addToCart = async (product, productType) => {
@@ -309,7 +388,191 @@ const ShopByProduct = ({ onBookSelect }) => {
   // Loading function
   const isLoading = () => {
     return (activeTab === "books" && loadingBooks) || 
-           (activeTab === "stationery" && loadingStationery);
+           (activeTab === "stationery" && loadingStationery) ||
+           (activeTab === "ncertBooks" && loadingBooks) ||
+           (activeTab === "notebooks" && loadingStationery) ||
+           (activeTab === "fastMoving" && (loadingBooks || loadingStationery));
+  };
+  
+  // Generate pagination numbers
+  const generatePaginationNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5; // How many page numbers to show
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if there are few pages
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Show subset of pages for large datasets
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+      let endPage = startPage + maxVisiblePages - 1;
+      
+      if (endPage > totalPages) {
+        endPage = totalPages;
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      }
+      
+      if (startPage > 1) {
+        pageNumbers.push(1);
+        if (startPage > 2) pageNumbers.push('...');
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+      
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) pageNumbers.push('...');
+        pageNumbers.push(totalPages);
+      }
+    }
+    
+    return pageNumbers;
+  };
+
+  // Determine if an item is a book or stationery based on its properties
+  const isBook = (item) => {
+    return item.hasOwnProperty('title') && item.hasOwnProperty('author');
+  };
+
+  // Render a product card based on its type
+  const renderProductCard = (item) => {
+    const isBookItem = isBook(item);
+    
+    return (
+      <div
+        key={item._id}
+        className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer"
+        onClick={() => isBookItem && handleBookClick(item)}
+      >
+        {/* Image container */}
+        <div className="relative h-48 mb-3 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
+          {item.image ? (
+            <div className="w-full h-full flex items-center justify-center p-2">
+              <img
+                src={`${item.image}`}
+                alt={isBookItem ? item.title : item.name}
+                className="max-h-full max-w-full object-contain"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://via.placeholder.com/150x200?text=No+Image";
+                }}
+              />
+            </div>
+          ) : (
+            <div className="text-center text-gray-400 p-4">
+              {isBookItem ? (
+                <FaBook size={30} className="mx-auto mb-2" />
+              ) : (
+                getCategoryIcon(item.category)
+              )}
+              <p>No Image Available</p>
+            </div>
+          )}
+          {item.status === "Out of Stock" && (
+            <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-2 py-1 m-2 rounded">
+              Out of Stock
+            </div>
+          )}
+        </div>
+        
+        {isBookItem ? (
+          <>
+            <h3 className="text-lg font-semibold text-gray-800 line-clamp-1">{item.title}</h3>
+            <p className="text-gray-600 text-sm mb-1">By {item.author}</p>
+            <p className="text-xs text-gray-500 mb-2">{item.category || "General"}</p>
+          </>
+        ) : (
+          <>
+            <h3 className="text-lg font-semibold text-gray-800 line-clamp-1">{item.name}</h3>
+            {item.brand && (
+              <p className="text-gray-600 text-sm mb-1">Brand: {item.brand}</p>
+            )}
+            {item.description && (
+              <p className="text-xs text-gray-500 mb-2 line-clamp-2">{item.description}</p>
+            )}
+            
+            <div className="flex justify-between items-center mt-auto">
+              <div>
+                <span className="font-bold text-gray-900">{formatPrice(item.price)}</span>
+                {item.discount > 0 && (
+                  <span className="ml-2 text-xs text-green-600 font-medium">
+                    {item.discount}% OFF
+                  </span>
+                )}
+              </div>
+              
+              {/* Cart buttons for stationery items - kept unchanged */}
+              {!cartItems[item._id] ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    addToCart(item, "stationery");
+                  }}
+                  disabled={item.status === "Out of Stock" || cartLoading}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-md ${
+                    item.status === "Out of Stock" || cartLoading
+                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      : "bg-blue-500 text-white hover:bg-blue-600"
+                  }`}
+                >
+                  {cartLoading ? (
+                    <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                  ) : (
+                    <FaShoppingCart className="text-sm" />
+                  )}
+                  <span>{item.status === "Out of Stock" ? "Out of Stock" : "Add to Cart"}</span>
+                </button>
+              ) : (
+                <div className="flex items-center border border-gray-200 rounded-md">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateQuantity(item._id, -1, "stationery");
+                    }}
+                    disabled={cartLoading}
+                    className={`p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-l-md ${
+                      cartLoading ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    <FaMinus size={12} />
+                  </button>
+                  <span className="px-3 py-1 text-center min-w-8">
+                    {cartItems[item._id]}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateQuantity(item._id, 1, "stationery");
+                    }}
+                    disabled={cartLoading}
+                    className={`p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-md ${
+                      cartLoading ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    <FaPlus size={12} />
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            {item.status === "Low Stock" && (
+              <div className="mt-2 text-xs text-amber-600 font-medium">
+                Only {item.stock} left!
+              </div>
+            )}
+            
+            {item.status === "Out of Stock" && (
+              <div className="mt-2 text-xs text-red-600 font-medium">
+                Out of stock
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -327,10 +590,10 @@ const ShopByProduct = ({ onBookSelect }) => {
         </div>
       )}
     
-      {/* Tabs */}
-      <div className="flex mb-6">
+      {/* Tabs - Updated with new tabs */}
+      <div className="flex flex-wrap gap-1 mb-6">
         <button
-          className={`px-6 py-3 text-lg font-semibold rounded-t-lg flex items-center gap-2 ${
+          className={`px-4 py-2 text-sm md:text-base font-semibold rounded-t-lg flex items-center gap-1 ${
             activeTab === "books"
               ? "bg-white text-blue-600 border-t border-r border-l border-gray-200"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -340,7 +603,17 @@ const ShopByProduct = ({ onBookSelect }) => {
           <FaBook /> Books
         </button>
         <button
-          className={`px-6 py-3 text-lg font-semibold rounded-t-lg flex items-center gap-2 ${
+          className={`px-4 py-2 text-sm md:text-base font-semibold rounded-t-lg flex items-center gap-1 ${
+            activeTab === "ncertBooks"
+              ? "bg-white text-blue-600 border-t border-r border-l border-gray-200"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("ncertBooks")}
+        >
+          <FaBookOpen /> NCERT Books
+        </button>
+        <button
+          className={`px-4 py-2 text-sm md:text-base font-semibold rounded-t-lg flex items-center gap-1 ${
             activeTab === "stationery"
               ? "bg-white text-blue-600 border-t border-r border-l border-gray-200"
               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -349,16 +622,47 @@ const ShopByProduct = ({ onBookSelect }) => {
         >
           <FaPen /> Stationery
         </button>
+        <button
+          className={`px-4 py-2 text-sm md:text-base font-semibold rounded-t-lg flex items-center gap-1 ${
+            activeTab === "notebooks"
+              ? "bg-white text-blue-600 border-t border-r border-l border-gray-200"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("notebooks")}
+        >
+          <FaBook /> Notebooks
+        </button>
+        <button
+          className={`px-4 py-2 text-sm md:text-base font-semibold rounded-t-lg flex items-center gap-1 ${
+            activeTab === "fastMoving"
+              ? "bg-white text-blue-600 border-t border-r border-l border-gray-200"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("fastMoving")}
+        >
+          <FaBolt /> Fast Moving
+        </button>
       </div>
 
       {/* Search Section */}
-      <div className="flex justify-center mb-8 bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+      <div className="flex flex-col justify-center mb-8 bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+        {/* Toonzkart exclusive text */}
+        <div className="text-center mb-3">
+          <p className="text-blue-600 font-semibold italic">Exclusively Fulfilled by Toonzkart</p>
+        </div>
+        
         {/* Search Bar */}
-        <div className="relative w-full md:w-2/3">
+        <div className="relative w-full md:w-2/3 mx-auto">
           <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
           <input
             type="text"
-            placeholder={`Search for ${activeTab === "books" ? "books" : "stationery"}...`}
+            placeholder={`Search for ${
+              activeTab === "books" || activeTab === "ncertBooks" 
+                ? "books" 
+                : activeTab === "stationery" || activeTab === "notebooks"
+                  ? "stationery"
+                  : "products"
+            }...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="border border-gray-300 pl-10 pr-4 py-2 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none shadow-md"
@@ -381,259 +685,102 @@ const ShopByProduct = ({ onBookSelect }) => {
         </div>
       )}
 
-      {/* Books Tab Content */}
-      {activeTab === "books" && !loadingBooks && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredBooks.length > 0 ? (
-            filteredBooks.map((book) => (
-              <div
-                key={book._id}
-                className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer"
-                onClick={() => handleBookClick(book)}
-              >
-                {/* Image container */}
-                <div className="relative h-48 mb-3 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
-                  {book.image ? (
-                    <div className="w-full h-full flex items-center justify-center p-2">
-                      <img
-                        src={`${book.image}`}
-                        alt={book.title}
-                        className="max-h-full max-w-full object-contain"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "https://via.placeholder.com/150x200?text=No+Image";
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <div className="text-center text-gray-400 p-4">
-                      <FaBook size={30} className="mx-auto mb-2" />
-                      <p>No Image Available</p>
-                    </div>
-                  )}
-                  {book.status === "Out of Stock" && (
-                    <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-2 py-1 m-2 rounded">
-                      Out of Stock
-                    </div>
-                  )}
-                </div>
-                <h3 className="text-lg font-semibold text-gray-800 line-clamp-1">{book.title}</h3>
-                <p className="text-gray-600 text-sm mb-1">By {book.author}</p>
-                <p className="text-xs text-gray-500 mb-2">{book.category || "General"}</p>
-                
-                <div className="flex justify-between items-center mt-auto">
-                  <div>
-                    <span className="font-bold text-gray-900">{formatPrice(book.price)}</span>
-                    {book.originalPrice && book.originalPrice > book.price && (
-                      <span className="text-xs text-gray-500 line-through ml-2">
-                        {formatPrice(book.originalPrice)}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {/* Cart buttons for books */}
-                  {!cartItems[book._id] ? (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToCart(book, "book");
-                      }}
-                      disabled={book.status === "Out of Stock" || cartLoading}
-                      className={`flex items-center gap-1 px-3 py-1 rounded-md ${
-                        book.status === "Out of Stock" || cartLoading
-                          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                          : "bg-blue-500 text-white hover:bg-blue-600"
-                      }`}
-                    >
-                      {cartLoading ? (
-                        <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
-                      ) : (
-                        <FaShoppingCart className="text-sm" />
-                      )}
-                      <span>{book.status === "Out of Stock" ? "Out of Stock" : "Add to Cart"}</span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center border border-gray-200 rounded-md">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateQuantity(book._id, -1, "book");
-                        }}
-                        disabled={cartLoading}
-                        className={`p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-l-md ${
-                          cartLoading ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                      >
-                        <FaMinus size={12} />
-                      </button>
-                      <span className="px-3 py-1 text-center min-w-8">
-                        {cartItems[book._id]}
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateQuantity(book._id, 1, "book");
-                        }}
-                        disabled={cartLoading}
-                        className={`p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-md ${
-                          cartLoading ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                      >
-                        <FaPlus size={12} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-10">
-              <p className="text-gray-500 mb-4">No books found matching your search.</p>
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  className="text-blue-500 hover:underline"
-                >
-                  Clear search
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Stationery Tab Content */}
-      {activeTab === "stationery" && !loadingStationery && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredStationery.length > 0 ? (
-            filteredStationery.map((product) => (
-              <div
-                key={product._id}
-                className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1"
-              >
-
-                <div className="h-48 mb-3 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
-                  {product.image ? (
-                    <div className="w-full h-full flex items-center justify-center p-2">
-                      <img
-                        src={`${product.image}`}
-                        alt={product.name}
-                        className="max-h-full max-w-full object-contain"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "https://via.placeholder.com/150x200?text=No+Image";
-                        }}
-                      />
-                    </div>
-
-                    
-                  ) : (
-                    <div className="flex flex-col items-center justify-center text-center p-4">
-                      {getCategoryIcon(product.category)}
-                      <span className="mt-2 text-gray-500">{product.category || "Stationery"}</span>
-                    </div>
-                  )}
-                </div>
-                <h3 className="text-lg font-semibold text-gray-800 line-clamp-1">{product.name}</h3>
-                {product.brand && (
-                  <p className="text-gray-600 text-sm mb-1">Brand: {product.brand}</p>
-                )}
-                {product.description && (
-                  <p className="text-xs text-gray-500 mb-2 line-clamp-2">{product.description}</p>
-                )}
-                
-                <div className="flex justify-between items-center mt-auto">
-                  <div>
-                    <span className="font-bold text-gray-900">{formatPrice(product.price)}</span>
-                    {product.discount > 0 && (
-                      <span className="ml-2 text-xs text-green-600 font-medium">
-                        {product.discount}% OFF
-                      </span>
-                    )}
-                  </div>
-                  
-                  {/* Cart buttons for stationery items - now with backend integration */}
-                  {!cartItems[product._id] ? (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToCart(product, "stationery");
-                      }}
-                      disabled={product.status === "Out of Stock" || cartLoading}
-                      className={`flex items-center gap-1 px-3 py-1 rounded-md ${
-                        product.status === "Out of Stock" || cartLoading
-                          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                          : "bg-blue-500 text-white hover:bg-blue-600"
-                      }`}
-                    >
-                      {cartLoading ? (
-                        <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
-                      ) : (
-                        <FaShoppingCart className="text-sm" />
-                      )}
-                      <span>{product.status === "Out of Stock" ? "Out of Stock" : "Add to Cart"}</span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center border border-gray-200 rounded-md">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateQuantity(product._id, -1, "stationery");
-                        }}
-                        disabled={cartLoading}
-                        className={`p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-l-md ${
-                          cartLoading ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                      >
-                        <FaMinus size={12} />
-                      </button>
-                      <span className="px-3 py-1 text-center min-w-8">
-                        {cartItems[product._id]}
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateQuantity(product._id, 1, "stationery");
-                        }}
-                        disabled={cartLoading}
-                        className={`p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-r-md ${
-                          cartLoading ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                      >
-                        <FaPlus size={12} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-                
-                {product.status === "Low Stock" && (
-                  <div className="mt-2 text-xs text-amber-600 font-medium">
-                    Only {product.stock} left!
-                  </div>
-                )}
-                
-                {product.status === "Out of Stock" && (
-                  <div className="mt-2 text-xs text-red-600 font-medium">
-                    Out of stock
-                  </div>
+      {/* Product Grid - Updated to use the same display for all tabs */}
+      {!isLoading() && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {currentItems.length > 0 ? (
+              currentItems.map((item) => renderProductCard(item))
+            ) : (
+              <div className="col-span-full text-center py-10">
+                <p className="text-gray-500 mb-4">No items found matching your search.</p>
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="text-blue-500 hover:underline"
+                  >
+                    Clear search
+                  </button>
                 )}
               </div>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-10">
-              <p className="text-gray-500 mb-4">No stationery items found matching your search.</p>
-              {search && (
+            )}
+          </div>
+          
+          {/* Pagination */}
+          {totalItems > 0 && (
+            <div className="mt-8 flex justify-center">
+              <nav className="flex items-center" aria-label="Pagination">
                 <button
-                  onClick={() => setSearch("")}
-                  className="text-blue-500 hover:underline"
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
+                  className={`mr-2 p-2 rounded-md ${
+                    currentPage === 1
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "text-blue-600 hover:bg-blue-50"
+                  }`}
+                  aria-label="Previous page"
                 >
-                  Clear search
+                  <FaChevronLeft className="h-4 w-4" />
                 </button>
-              )}
+                
+                <div className="flex items-center space-x-1">
+                  {generatePaginationNumbers().map((page, index) => (
+                    page === '...' ? (
+                      <span key={`ellipsis-${index}`} className="px-3 py-2 text-gray-500">...</span>
+                    ) : (
+                      <button
+                        key={page}
+                        onClick={() => paginate(page)}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === page
+                            ? "bg-blue-600 text-white"
+                            : "bg-white text-gray-700 hover:bg-gray-100"
+                        }`}
+                        aria-current={currentPage === page ? "page" : undefined}
+                      >
+                        {page}
+                      </button>
+                    )
+                  ))}
+                </div>
+                
+                <button
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                  className={`ml-2 p-2 rounded-md ${
+                    currentPage === totalPages
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "text-blue-600 hover:bg-blue-50"
+                  }`}
+                  aria-label="Next page"
+                >
+                  <FaChevronRight className="h-4 w-4" />
+                </button>
+              </nav>
             </div>
           )}
-        </div>
+        </>
       )}
+      
+      {/* Items per page selector */}
+      <div className="mt-4 flex justify-center">
+        <div className="flex items-center text-sm text-gray-600">
+          <span className="mr-2">Items per page:</span>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1); // Reset to first page when changing items per page
+            }}
+            className="border border-gray-300 rounded-md p-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          >
+            <option value={4}>4</option>
+            <option value={8}>8</option>
+            <option value={12}>12</option>
+            <option value={16}>16</option>
+          </select>
+        </div>
+      </div>
     </div>
   );
 };

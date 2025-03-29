@@ -12,6 +12,31 @@ const HeroSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef(null);
+  
+  // List of cities - same as in Header component
+  const cities = [
+    "Indore", 
+    "Ujjain", 
+    "Dewas", 
+    "Baroda", 
+    "Bhopal", 
+    "Surat", 
+    "Ahmedabad", 
+    "Raipur", 
+    "Nagpur", 
+    "Nashik", 
+    "Pune"
+  ];
+  
+  // Get the selected city from localStorage for consistency with Header
+  const [selectedCity, setSelectedCity] = useState(localStorage.getItem('selectedCity') || "Indore");
+
+  // Update localStorage when the city changes
+  const handleCityChange = (e) => {
+    const newCity = e.target.value;
+    setSelectedCity(newCity);
+    localStorage.setItem('selectedCity', newCity);
+  };
 
   // Check login status from localStorage (or however you track auth)
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -251,11 +276,14 @@ const HeroSection = () => {
             <div className="flex justify-center items-center w-full bg-white rounded-full shadow px-3 py-1 border border-gray-300">
               <div className="flex items-center border-r border-gray-300 pl-4 pr-3">
                 <FaMapMarkerAlt className="text-red-500" />
-                <select className="focus:outline-none bg-transparent cursor-pointer pl-2 pr-1 appearance-none text-gray-700">
-                  <option>Indore</option>
-                  <option>New York</option>
-                  <option>London</option>
-                  <option>Tokyo</option>
+                <select 
+                  className="focus:outline-none bg-transparent cursor-pointer pl-2 pr-1 appearance-none text-gray-700"
+                  value={selectedCity}
+                  onChange={handleCityChange}
+                >
+                  {cities.map((city, index) => (
+                    <option key={index} value={city}>{city}</option>
+                  ))}
                 </select>
                 <FaChevronDown className="text-gray-500 ml-1" />
               </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaMapMarkerAlt, FaBars } from "react-icons/fa";
+import { FaMapMarkerAlt, FaBars, FaChevronDown } from "react-icons/fa";
 import { ShoppingCart, User, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toonzkartLogo from "../assets/toonzkart_logo.png";
@@ -11,6 +11,34 @@ const Header = ({ logo }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  
+  // List of cities
+  const cities = [
+    "Indore", 
+    "Ujjain", 
+    "Dewas", 
+    "Baroda", 
+    "Bhopal", 
+    "Surat", 
+    "Ahmedabad", 
+    "Raipur", 
+    "Nagpur", 
+    "Nashik", 
+    "Pune"
+  ];
+  
+  // State for the selected city
+  const [selectedCity, setSelectedCity] = useState(localStorage.getItem('selectedCity') || "Indore");
+  
+  // Set the selected city to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('selectedCity', selectedCity);
+  }, [selectedCity]);
+  
+  const handleCitySelect = (city) => {
+    setSelectedCity(city);
+    setIsDropdownOpen(false);
+  };
   
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
@@ -69,26 +97,41 @@ const Header = ({ logo }) => {
           <img src={toonzkartLogo} alt="ToonzKart Logo" className="h-10 md:h-14 w-auto" />
         </Link>
         
-        {/* Location Selector - Only visible on larger screens by default */}
+        {/* Location Selector - Enhanced with proper dropdown */}
         <div className="relative ml-2 md:ml-6" ref={dropdownRef}>
           <div 
-            className="flex items-center bg-gray-200 rounded-lg px-2 md:px-4 py-1 md:py-3 cursor-pointer text-sm md:text-base" 
+            className="flex items-center bg-gray-200 rounded-lg px-2 md:px-4 py-1 md:py-2 cursor-pointer text-sm md:text-base" 
             onClick={toggleDropdown}
           >
             <FaMapMarkerAlt className="text-gray-500 mr-1 md:mr-2 text-sm md:text-lg" />
-            <span className="text-gray-700 font-medium">Indore</span>
+            <span className="text-gray-700 font-medium">{selectedCity}</span>
+            <FaChevronDown className="ml-1 md:ml-2 text-gray-500 text-xs md:text-sm" />
           </div>
           
-          {/* Dropdown with expansion message */}
+          {/* City dropdown */}
           {isDropdownOpen && (
-            <div className="absolute z-10 mt-1 w-48 md:w-64 bg-white rounded-md shadow-lg py-1 border border-gray-200">
+            <div className="absolute z-10 mt-1 w-48 md:w-64 bg-white rounded-md shadow-lg py-1 border border-gray-200 max-h-80 overflow-y-auto">
               <div className="px-3 md:px-4 py-2 border-b border-gray-100">
-                <div className="font-medium text-gray-700">Indore</div>
-                <div className="text-xs text-gray-500 mt-1">Current service area</div>
+                <div className="font-medium text-gray-700">Select City</div>
+                <div className="text-xs text-gray-500 mt-1">Choose your service area</div>
+              </div>
+              <div className="city-list">
+                {cities.map((city, index) => (
+                  <div 
+                    key={index} 
+                    className={`px-3 md:px-4 py-2 cursor-pointer hover:bg-gray-100 ${city === selectedCity ? 'bg-blue-50 font-medium text-blue-700' : 'text-gray-700'}`}
+                    onClick={() => handleCitySelect(city)}
+                  >
+                    {city}
+                    {city === selectedCity && (
+                      <span className="text-xs ml-2 text-blue-600">(Current)</span>
+                    )}
+                  </div>
+                ))}
               </div>
               <div className="px-3 md:px-4 py-2 md:py-3 bg-blue-50 border-l-4 border-blue-500">
                 <div className="text-xs md:text-sm font-semibold text-blue-700">
-                  Expanding to other cities soon!
+                  More cities coming soon!
                 </div>
                 <div className="text-xs text-blue-600 mt-1">
                   Stay tuned for updates
@@ -153,7 +196,7 @@ const Header = ({ logo }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden">
           <div 
             ref={mobileMenuRef}
-            className="absolute right-0 top-0 w-3/4 max-w-xs h-full bg-white shadow-xl z-50 transform transition-transform"
+            className="absolute right-0 top-0 w-3/4 max-w-xs h-full bg-white shadow-xl z-50 transform transition-transform overflow-y-auto"
           >
             <div className="p-4 border-b border-gray-200">
               {isLoggedIn ? (
@@ -172,6 +215,23 @@ const Header = ({ logo }) => {
                   <p className="text-sm text-gray-600">Sign in to continue</p>
                 </div>
               )}
+            </div>
+
+            {/* Mobile location selector */}
+            <div className="p-4 border-b border-gray-200">
+              <div className="text-sm font-medium text-gray-500 mb-2">Your location</div>
+              <div className="flex items-center bg-gray-100 rounded-lg p-2">
+                <FaMapMarkerAlt className="text-gray-500 mr-2" />
+                <select 
+                  className="bg-transparent text-gray-700 w-full outline-none"
+                  value={selectedCity}
+                  onChange={(e) => setSelectedCity(e.target.value)}
+                >
+                  {cities.map((city, index) => (
+                    <option key={index} value={city}>{city}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <nav className="p-4">
