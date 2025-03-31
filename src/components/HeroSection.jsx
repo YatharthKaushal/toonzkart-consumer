@@ -18,14 +18,14 @@ const HeroSection = () => {
     "Indore", 
     "Ujjain", 
     "Dewas", 
-    "Baroda", 
-    "Bhopal", 
-    "Surat", 
-    "Ahmedabad", 
-    "Raipur", 
-    "Nagpur", 
-    "Nashik", 
-    "Pune"
+    // "Baroda", 
+    "Bhopal"
+    // "Surat", 
+    // "Ahmedabad", 
+    // "Raipur", 
+    // "Nagpur", 
+    // "Nashik", 
+    // "Pune"
   ];
   
   // Get the selected city from localStorage for consistency with Header
