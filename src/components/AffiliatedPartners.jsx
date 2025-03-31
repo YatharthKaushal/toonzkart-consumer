@@ -1,16 +1,16 @@
 import React from "react";
 
 const affiliatedSchools = [
-  { name: "St. Raphael's Higher Secondary School", imgSrc: "" },
-  { name: "The Emerald Heights International School", imgSrc: "" },
-  { name: "Agarwal Public School - Indore", imgSrc: "" },
-  { name: "Chameli Devi Public School", imgSrc: "" },
-  { name: "Medi-Caps International School", imgSrc: "" },
-  { name: "Delhi Public School Indore", imgSrc: "" },
-  { name: "SICA School, Nipaniya", imgSrc: "" },
-  { name: "Delhi International School", imgSrc: "" },
-  { name: "Sri Sathya Sai Vidya Vihar", imgSrc: "" },
-  { name: "The Shishukunj International School", imgSrc: "" },
+  { name: "St. Raphael's Higher Secondary School", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeoKhEzVHptao6zgaJJMoyfXWygdS2cXLm2A&s" },
+  { name: "The Emerald Heights International School", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBp6l4GK3cZkiogp8_fGQMzN8rygWgABe_sA&s" },
+  { name: "Agarwal Public School - Indore", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSto7S2bUaL7bfHxvT-z-GvFu6aMbMFwJQDebKThf_c09u326n3d-q-4bxWnLEBeswveWI&usqp=CAU" },
+  { name: "Chameli Devi Public School", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwboHr5p1-GoOBJB2HKBJ62l2Ta8NGUWUmqg&s" },
+  { name: "Medi-Caps International School", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQk_td3Y1kXzMWEJR8e-KVgjsuo-ofF0SxYHw&s" },
+  { name: "Delhi Public School Indore", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRC7B0ynTaZIDb-yoJ9VvSjCW9TAK2YFXXBuQ&s" },
+  { name: "SICA School, Nipaniya", imgSrc: "https://www.sircarsecurity.in/images/cl11.png" },
+  { name: "Delhi International School", imgSrc: "https://play-lh.googleusercontent.com/KZO9ezE6pc3VxL9F1HJgHvDCeg_jjJ9WX1jz1DgQPa-MZyeFEeKkbR4JLANSv8uaUB4" },
+  { name: "Choithram School, North Campus", imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwEhZ2yUlAWzccaxgmxBaT3uAF74PPvRysabZaAN5Vap8uNx-zvXJuX0xsqx17yNMbxkU&usqp=CAU" },
+  { name: "The Shishukunj International School", imgSrc: "https://www.shishukunj.in/jhalaria-campus/wp-content/themes/shishukunj/assets/images/cat_default_image1.jpg" },
 ];
 
 const AffiliatedPartners = () => {
