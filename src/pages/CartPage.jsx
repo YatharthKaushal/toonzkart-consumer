@@ -47,24 +47,29 @@ const CartPage = () => {
         const data = await response.json();
         
         // Transform the cart data to match the component's expected format
-        const transformedCartItems = data.items.map(item => ({
-          id: item.productId._id,
-          itemId: item._id,  // Store the cart item's ID for API calls
-          title: item.productId.name,
-          brand: item.productId.brand,
-          price: item.productId.price,
-          category: item.productId.category,
-          image: item.productId.image,
-          originalPrice: item.productId.price + (item.productId.discount > 0 ? Math.round(item.productId.price * item.productId.discount / 100) : 0),
-          discount: item.productId.discount,
-          stock: item.productId.stock,
-          status: item.productId.status
-        }));
+        // Add null checks for productId and its properties
+        const transformedCartItems = data.items
+          .filter(item => item && item.productId) // Filter out items with null productId
+          .map(item => ({
+            id: item.productId?._id || `fallback-${Math.random().toString(36).substring(2, 10)}`,
+            itemId: item._id || `fallback-item-${Math.random().toString(36).substring(2, 10)}`,
+            title: item.productId?.title || item.productId?.name || 'Unknown Product', // Check both title and name fields
+            brand: item.productId?.publisher || item.productId?.brand || 'Unknown Brand', // Map publisher to brand
+            price: item.productId?.price || 0,
+            category: item.productId?.category || 'Uncategorized',
+            image: item.productId?.image || '',
+            originalPrice: item.productId?.originalPrice || item.productId?.price || 0,
+            discount: item.productId?.discount || 0,
+            stock: item.productId?.stock || 0,
+            status: item.productId?.status || 'unknown'
+          }));
 
         // Create quantities object from the API response
         const newQuantities = {};
         data.items.forEach(item => {
-          newQuantities[item.productId._id] = item.quantity;
+          if (item && item.productId && item.productId._id) {
+            newQuantities[item.productId._id] = item.quantity || 1;
+          }
         });
 
         setCartItems(transformedCartItems);
@@ -73,7 +78,10 @@ const CartPage = () => {
       } catch (err) {
         console.error('Failed to fetch cart items:', err);
         setError(err.message);
+        // Don't block the page on error, set loading to false
         setLoading(false);
+        // Set cartItems to empty array rather than blocking
+        setCartItems([]);
       }
     };
 
@@ -82,6 +90,9 @@ const CartPage = () => {
 
   const updateQuantity = async (productId, change) => {
     try {
+      // Skip if productId is invalid
+      if (!productId) return;
+      
       const currentQty = quantities[productId] || 0;
       const newQty = Math.max(1, currentQty + change);
       
@@ -122,11 +133,21 @@ const CartPage = () => {
     } catch (err) {
       console.error('Failed to update quantity:', err);
       setError(err.message);
+      // Still update the UI even if the API call fails
+      const currentQty = quantities[productId] || 0;
+      const newQty = Math.max(1, currentQty + change);
+      setQuantities({
+        ...quantities,
+        [productId]: newQty
+      });
     }
   };
 
   const removeItem = async (productId) => {
     try {
+      // Skip if productId is invalid
+      if (!productId) return;
+      
       // Get the token from localStorage
       const token = localStorage.getItem('token');
       
@@ -162,6 +183,11 @@ const CartPage = () => {
     } catch (err) {
       console.error('Failed to remove item:', err);
       setError(err.message);
+      // Still update the UI even if the API call fails
+      setCartItems(cartItems.filter(item => item.id !== productId));
+      const newQuantities = {...quantities};
+      delete newQuantities[productId];
+      setQuantities(newQuantities);
     }
   };
 
@@ -263,7 +289,6 @@ const CartPage = () => {
       setOrderSuccess(true);
       
       // Clear cart after successful order
-      // You may want to do this through an API call as well
       setCartItems([]);
       setQuantities({});
       
@@ -282,7 +307,7 @@ const CartPage = () => {
 
   // Calculate subtotal
   const subtotal = cartItems.reduce((total, item) => {
-    return total + (item.price * (quantities[item.id] || 0));
+    return total + ((item.price || 0) * (quantities[item.id] || 0));
   }, 0);
 
   // Calculate discount
@@ -316,28 +341,25 @@ const CartPage = () => {
     );
   }
 
-  // Display error state
-  if (error) {
-    return (
-      <div className="w-full font-sans">
-        <div className="sticky top-0 z-50 bg-white shadow-md">
-          <Header logo={toonzkartLogo} />
-        </div>
-        <div className="max-w-6xl mx-auto p-4 font-sans">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <strong className="font-bold">Error: </strong>
-            <span className="block sm:inline">{error}</span>
-            <button 
-              className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-              onClick={() => window.location.reload()}
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Display error state with a retry button but don't block the page
+  const errorBanner = error ? (
+    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+      <strong className="font-bold">Error: </strong>
+      <span className="block sm:inline">{error}</span>
+      <button 
+        className="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 text-sm rounded"
+        onClick={() => window.location.reload()}
+      >
+        Retry
+      </button>
+      <button 
+        className="absolute top-0 bottom-0 right-0 px-4 py-3"
+        onClick={() => setError(null)}
+      >
+        <span className="text-xl">&times;</span>
+      </button>
+    </div>
+  ) : null;
 
   // Display success state
   if (orderSuccess) {
@@ -383,6 +405,9 @@ const CartPage = () => {
           </div>
         </header>
 
+        {/* Display Error Banner */}
+        {errorBanner}
+
         {/* Order Error Alert */}
         {orderError && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
@@ -426,13 +451,13 @@ const CartPage = () => {
                         </div>
                         
                         <div className="flex-grow">
-                          <h3 className="font-medium text-gray-800">{item.title}</h3>
-                          <p className="text-sm text-gray-500">{item.brand}</p>
-                          <p className="text-xs text-gray-400">{item.category}</p>
+                          <h3 className="font-medium text-gray-800">{item.title || 'Unknown Product'}</h3>
+                          <p className="text-sm text-gray-500">{item.brand || 'Unknown Brand'}</p>
+                          <p className="text-xs text-gray-400">{item.category || 'Uncategorized'}</p>
                           
                           <div className="flex items-center justify-between mt-2">
                             <div className="flex items-center">
-                              <span className="font-bold mr-2">₹{item.price}</span>
+                              <span className="font-bold mr-2">₹{item.price || 0}</span>
                               {item.originalPrice && item.price < item.originalPrice && (
                                 <span className="text-sm text-gray-500 line-through mr-2">₹{item.originalPrice}</span>
                               )}
@@ -448,7 +473,7 @@ const CartPage = () => {
                                   -
                                 </button>
                                 <span className="px-3 py-1 border-l border-r border-gray-300">
-                                  {quantities[item.id] || 0}
+                                  {quantities[item.id] || 1}
                                 </span>
                                 <button 
                                   onClick={() => updateQuantity(item.id, 1)}
