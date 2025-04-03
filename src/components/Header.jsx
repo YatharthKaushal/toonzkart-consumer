@@ -17,14 +17,14 @@ const Header = ({ logo }) => {
     "Indore", 
     "Ujjain", 
     "Dewas", 
-    "Baroda", 
-    "Bhopal", 
-    "Surat", 
-    "Ahmedabad", 
-    "Raipur", 
-    "Nagpur", 
-    "Nashik", 
-    "Pune"
+    // "Baroda", 
+    "Bhopal"
+    // "Surat", 
+    // "Ahmedabad", 
+    // "Raipur", 
+    // "Nagpur", 
+    // "Nashik", 
+    // "Pune"
   ];
   
   // State for the selected city
