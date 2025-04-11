@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toonzkartLogo from "../assets/toonzkart_logo.png";
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -25,6 +26,9 @@ export const Login = () => {
       setError('Please enter a valid email address');
       return;
     }
+
+    setIsLoading(true);
+    setError('');
 
     try {
       // Make the actual API call to your backend
@@ -58,6 +62,8 @@ export const Login = () => {
       // Network or server error
       console.error(err);
       setError('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -92,6 +98,7 @@ export const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -110,6 +117,7 @@ export const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
                 <div
                   className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
@@ -134,9 +142,17 @@ export const Login = () => {
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors flex items-center justify-center"
+              disabled={isLoading}
             >
-              Log In
+              {isLoading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin mr-2" />
+                  Logging in...
+                </>
+              ) : (
+                "Log In"
+              )}
             </button>
           </form>
 
@@ -156,4 +172,3 @@ export const Login = () => {
     </div>
   );
 };
-

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toonzkartLogo from "../assets/toonzkart_logo.png";
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 
 export const Signup = () => {
   const [name, setName] = useState('');
@@ -10,6 +10,7 @@ export const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async (e) => {
@@ -39,6 +40,9 @@ export const Signup = () => {
       setError('Please enter a valid email address');
       return;
     }
+
+    setIsLoading(true);
+    setError('');
 
     try {
       // Make the actual API call to your backend
@@ -73,6 +77,8 @@ export const Signup = () => {
       // Network or server error
       console.error(err);
       setError('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -107,6 +113,7 @@ export const Signup = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -125,6 +132,7 @@ export const Signup = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -143,6 +151,7 @@ export const Signup = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
                 <div
                   className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
@@ -174,6 +183,7 @@ export const Signup = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -181,9 +191,19 @@ export const Signup = () => {
             <button
               type="submit"
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors flex items-center justify-center"
+              disabled={isLoading}
             >
-              Create Account
-              <ArrowRight size={18} className="ml-2" />
+              {isLoading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin mr-2" />
+                  Creating account...
+                </>
+              ) : (
+                <>
+                  Create Account
+                  <ArrowRight size={18} className="ml-2" />
+                </>
+              )}
             </button>
           </form>
 

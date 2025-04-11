@@ -207,8 +207,14 @@ const ShopByProduct = ({ onBookSelect }) => {
       // Get the token from localStorage
       const token = localStorage.getItem('token');
       
+      // If user is not logged in, redirect to login page
       if (!token) {
-        throw new Error('Authentication required. Please log in.');
+        setCartLoading(false);
+        // Store a redirection target in localStorage if needed
+        localStorage.setItem('redirectAfterLogin', window.location.pathname);
+        // Redirect to login page
+        navigate('/login');
+        return;
       }
       
       // Determine the category based on product type
@@ -267,15 +273,21 @@ const ShopByProduct = ({ onBookSelect }) => {
       setCartLoading(true);
       setCartError("");
       
-      const currentQty = cartItems[productId] || 0;
-      const newQty = Math.max(0, currentQty + change);
-      
       // Get the token from localStorage
       const token = localStorage.getItem('token');
       
+      // If user is not logged in, redirect to login page
       if (!token) {
-        throw new Error('Authentication required. Please log in.');
+        setCartLoading(false);
+        // Store a redirection target in localStorage if needed
+        localStorage.setItem('redirectAfterLogin', window.location.pathname);
+        // Redirect to login page
+        navigate('/login');
+        return;
       }
+      
+      const currentQty = cartItems[productId] || 0;
+      const newQty = Math.max(0, currentQty + change);
       
       // Find the cart item associated with this product
       const response = await axios.get(`${API_BASE_URL}/api/cart`, {

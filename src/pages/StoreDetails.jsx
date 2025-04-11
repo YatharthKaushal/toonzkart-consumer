@@ -148,8 +148,14 @@ const StoreDetails = () => {
       // Get the token from localStorage
       const token = localStorage.getItem('token');
       
+      // If user is not logged in, redirect to login page
       if (!token) {
-        throw new Error('Authentication required. Please log in.');
+        setCartLoading(false);
+        // Store a redirection target in localStorage if needed
+        localStorage.setItem('redirectAfterLogin', window.location.pathname);
+        // Redirect to login page
+        navigate('/login');
+        return;
       }
       
       // Determine the category - default to "Books" if not specified
@@ -215,15 +221,21 @@ const StoreDetails = () => {
       setCartLoading(true);
       setCartError("");
       
-      const currentQty = bookQuantities[bookId] || 0;
-      const newQty = Math.max(0, currentQty + change);
-      
       // Get the token from localStorage
       const token = localStorage.getItem('token');
       
+      // If user is not logged in, redirect to login page
       if (!token) {
-        throw new Error('Authentication required. Please log in.');
+        setCartLoading(false);
+        // Store a redirection target in localStorage if needed
+        localStorage.setItem('redirectAfterLogin', window.location.pathname);
+        // Redirect to login page
+        navigate('/login');
+        return;
       }
+      
+      const currentQty = bookQuantities[bookId] || 0;
+      const newQty = Math.max(0, currentQty + change);
       
       // Find the cart item associated with this product
       const response = await axios.get(`${API_BASE_URL}/api/cart`, {
@@ -576,7 +588,7 @@ const StoreDetails = () => {
           {/* Mobile filter and search bar */}
           <div className="sticky top-16 z-40 bg-white border-b pb-2 mb-4 md:hidden">
             <div className="flex justify-between items-center">
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 <button 
                   onClick={toggleFilters}
                   className="flex items-center border px-3 py-1 rounded-md text-sm mr-2"
@@ -589,7 +601,7 @@ const StoreDetails = () => {
                   <option>Price: Low to High</option>
                   <option>Price: High to Low</option>
                 </select>
-              </div>
+              </div> */}
               <button 
                 onClick={toggleSearchBar}
                 className="p-2 rounded-md border"
@@ -707,7 +719,7 @@ const StoreDetails = () => {
             <div className="hidden md:flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">{activeCategory}</h2>
               <div className="flex items-center space-x-2">
-                <button className="flex items-center border px-3 py-1 rounded-md hover:bg-gray-50">
+                {/* <button className="flex items-center border px-3 py-1 rounded-md hover:bg-gray-50">
                   <Filter size={16} className="mr-1" />
                   <span>Filters</span>
                 </button>
@@ -716,7 +728,7 @@ const StoreDetails = () => {
                   <option>Price: Low to High</option>
                   <option>Price: High to Low</option>
                   <option>Newest Arrivals</option>
-                </select>
+                </select> */}
                 <div className="relative">
                   <Search size={16} className="absolute left-3 top-3 text-gray-400" />
                   <input
