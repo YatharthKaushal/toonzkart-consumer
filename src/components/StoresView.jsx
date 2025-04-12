@@ -55,7 +55,6 @@ const StoresView = ({ selectedSchool, onBack }) => {
       {loading && (
         <p className="text-gray-600 text-center">Loading stores...</p>
       )}
-      {error && <p className="text-red-500 text-center">{}</p>}
 
       {/* Stores Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -80,11 +79,22 @@ const StoresView = ({ selectedSchool, onBack }) => {
             </div>
           ))
         ) : (
-          <div className="w-full mx-auto bg-white shadow-lg col-span-full">
+          <div className="w-full px-20 mx-auto bg-white shadow-lg col-span-full p-6">
             {!loading && (
-              <p className="text-gray-600 text-center">
-                Currently no stores available.
-              </p>
+              <>
+                <p className="text-gray-600 text-center">
+                  Currently no stores available for this school.
+                </p>
+
+                {error && (
+                  <p className="text-green-500 text-center w-4xl mx-auto font-bold mb-4">
+                    Simply list your demands here and relax. No need to search
+                    through our entire catalog — <br />
+                    our experts will find it for you and call back within 1
+                    hour!
+                  </p>
+                )}
+              </>
             )}
             <SchoolDemand />
           </div>
