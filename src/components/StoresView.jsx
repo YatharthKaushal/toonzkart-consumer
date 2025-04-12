@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { ArrowLeft } from "lucide-react";
+import ShopByDemand from "./ShopByDemand";
+import SchoolDemand from "./SchoolDemand";
 
 const API_BASE_URL = "https://backend-lzb7.onrender.com"; // Backend API URL
 
@@ -24,7 +26,9 @@ const StoresView = ({ selectedSchool, onBack }) => {
     setError("");
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/stores/school/${schoolId}`);
+      const response = await axios.get(
+        `${API_BASE_URL}/api/stores/school/${schoolId}`
+      );
       setStores(response.data);
     } catch (err) {
       setError("Failed to fetch stores. Please try again.");
@@ -49,7 +53,9 @@ const StoresView = ({ selectedSchool, onBack }) => {
       </h2>
 
       {/* Loading & Error Handling */}
-      {loading && <p className="text-gray-600 text-center">Loading stores...</p>}
+      {loading && (
+        <p className="text-gray-600 text-center">Loading stores...</p>
+      )}
       {error && <p className="text-red-500 text-center">{error}</p>}
 
       {/* Stores Grid */}
@@ -66,14 +72,21 @@ const StoresView = ({ selectedSchool, onBack }) => {
                 alt={store.storeName}
                 className="w-full h-40 object-cover rounded-md"
               />
-              <h3 className="text-lg font-semibold mt-3 text-gray-800">{store.storeName}</h3>
+              <h3 className="text-lg font-semibold mt-3 text-gray-800">
+                {store.storeName}
+              </h3>
               <p className="text-gray-600 flex items-center">
                 <FaMapMarkerAlt className="text-red-500 mr-2" /> {store.address}
               </p>
             </div>
           ))
         ) : (
-          !loading && <p className="text-gray-600 text-center col-span-full">No stores available.</p>
+          <div className="w-full mx-auto bg-white shadow-lg col-span-full">
+            {!loading && (
+              <p className="text-gray-600 text-center">No stores available.</p>
+            )}
+            <SchoolDemand />
+          </div>
         )}
       </div>
     </div>
