@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { ArrowLeft } from "lucide-react";
-import ShopByDemand from "./ShopByDemand";
 import SchoolDemand from "./SchoolDemand";
 
 const API_BASE_URL = "https://backend-lzb7.onrender.com"; // Backend API URL
@@ -56,7 +55,7 @@ const StoresView = ({ selectedSchool, onBack }) => {
       {loading && (
         <p className="text-gray-600 text-center">Loading stores...</p>
       )}
-      {error && <p className="text-red-500 text-center">{error}</p>}
+      {error && <p className="text-red-500 text-center">{}</p>}
 
       {/* Stores Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -83,7 +82,9 @@ const StoresView = ({ selectedSchool, onBack }) => {
         ) : (
           <div className="w-full mx-auto bg-white shadow-lg col-span-full">
             {!loading && (
-              <p className="text-gray-600 text-center">No stores available.</p>
+              <p className="text-gray-600 text-center">
+                Currently no stores available.
+              </p>
             )}
             <SchoolDemand />
           </div>
