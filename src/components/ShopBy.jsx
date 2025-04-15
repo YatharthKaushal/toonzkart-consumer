@@ -39,7 +39,7 @@ const ShopBy = () => {
             key={index} 
             to="/shop" 
             state={{ activeTab: category.tabId }}
-            className="w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)] bg-white rounded-lg md:rounded-xl shadow-md md:shadow-lg overflow-hidden transition-transform hover:scale-102 hover:scale-105 border border-gray-100"
+            className="w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(50%-0.5rem)] lg:w-[calc(25%-0.75rem)] bg-white rounded-lg md:rounded-xl shadow-md md:shadow-lg overflow-hidden transition-transform hover:scale-105 border border-gray-100"
           >
             <div className="flex flex-row sm:flex-col items-center sm:items-stretch">
               <img 
