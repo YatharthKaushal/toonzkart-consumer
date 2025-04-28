@@ -65,7 +65,10 @@ const StoresView = ({ selectedSchool, onBack }) => {
             <div
               key={store._id}
               className="border bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer"
-              onClick={() => navigate(`/store/${store._id}`)}
+              onClick={() =>
+                navigate(`/store/${store._id}?school=${selectedSchool._id}`)
+              }
+              // onClick={() => navigate(`/store/${store._id}`)}
             >
               <img
                 src={store.image || "https://via.placeholder.com/150"}
