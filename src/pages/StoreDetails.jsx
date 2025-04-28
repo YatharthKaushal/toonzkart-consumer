@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import {
   Info,
@@ -22,6 +22,7 @@ import {
 import Header from "../components/Header";
 import toonzkartLogo from "../assets/toonzkart_logo.png";
 import DemandForm from "../components/DemandForm";
+import { SiBookstack } from "react-icons/si";
 
 const API_BASE_URL = "https://backend-lzb7.onrender.com"; // Backend API URL
 
@@ -58,6 +59,43 @@ const StoreDetails = () => {
   const [showSearchBar, setShowSearchBar] = useState(false);
 
   const [isToonzkart, setIsToonzKart] = useState(false);
+
+  const [bookset, setBookset] = useState([]);
+  const [schoolName, setSchoolName] = useState("")
+  const location = useLocation();
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const schoolId = queryParams.get("school");
+    if (!schoolId) {
+      console.log("School ID: not found");
+      return;
+    }
+    const fetchBookset = async () => {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/schools/${schoolId}`
+        );
+        if (response.data && response.data.bookset) {
+          console.log("> bookset: ", response.data.bookset);
+          setBookset(response.data.bookset);
+          setSchoolName(response.data.name)
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchBookset();
+  }, [location.search]);
+
+  const handleBooksetBuy = async (e) => {
+    e.preventDefault()
+    const formData = new FormData();
+    formData.append("books", "")
+    await axios.post(`${API_BASE_URL}/api/book-requests`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+  }
 
   // Fetch store details from API
   useEffect(() => {
@@ -806,6 +844,111 @@ const StoreDetails = () => {
 
             {/* Book Listings */}
             <div className="flex-1">
+              <h2 className="text-2xl font-bold">
+                {schoolName ? `${schoolName} Booksets` : ""}
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+                {bookset.length == 0 ? (
+                  <></>
+                ) : (
+                  bookset.map((item) => (
+                    <div
+                      key={item._id}
+                      className="rounded-md p-2 md:p-3 md:w- hover:shadow-md transition-shadow flex flex-col justify-around h-80 shadow-sm"
+                    >
+                      <div className="m-auto bg-gray-50 w-full py-2 rounded-md mb-2">
+                        <SiBookstack
+                          size={50}
+                          color="gray"
+                          className="m-auto"
+                        />
+                      </div>
+                      <div className=" mb-2 flex itemscenter justify-center rounded overflow-hidden">
+                        <h4 className="text-gray-800 text-sm md:text-base line-clamp-3 font-black">
+                          {item.name} Bookset
+                        </h4>
+                      </div>
+
+                      <ul className="h-20 overflow-y-auto">
+                        {item.list.map((book, index) => (
+                          <li
+                            key={index}
+                            className="text-xs md:text-sm text-gray-500 line-clamp-1"
+                          >
+                            {book}
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="flex justify-between items-center mt-1 md:mt-2">
+                        <span className="font-bold text-sm md:text-base">
+                          {formatPrice(item.price)}
+                        </span>
+                        {item.originalPrice &&
+                          item.originalPrice > item.price && (
+                            <span className="text-xs text-gray-500 line-through">
+                              {formatPrice(item.originalPrice)}
+                            </span>
+                          )}
+                      </div>
+
+                      <div className="mt-auto pt-2 md:pt-3">
+                        {!bookQuantities[item._id] ? (
+                          <button
+                            onClick={() => addToCart(item)}
+                            className={`w-full bg-blue-600 text-white py-1 md:py-2 px-2 md:px-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center text-xs md:text-sm ${
+                              cartLoading ? "opacity-50 cursor-not-allowed" : ""
+                            }`}
+                            disabled={
+                              item.status ===  cartLoading
+                            }
+                          >
+                            {cartLoading ? (
+                              <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin mr-1"></div>
+                            ) : (
+                              <ShoppingCart size={14} className="mr-1" />
+                            )}
+                            <span>
+                              {item.status === "Out of Stock"
+                                ? "Out of Stock"
+                                : "Add to Cart"}
+                            </span>
+                          </button>
+                        ) : (
+                          <div className="w-full flex items-center justify-between border border-blue-600 rounded-md">
+                            <button
+                              onClick={() => updateQuantity(item._id, -1)}
+                              className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-l-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${
+                                cartLoading
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : ""
+                              }`}
+                              disabled={cartLoading}
+                            >
+                              -
+                            </button>
+                            <span className="px-2 text-sm">
+                              {bookQuantities[item._id]}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item._id, 1)}
+                              className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-r-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${
+                                cartLoading
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : ""
+                              }`}
+                              disabled={cartLoading}
+                            >
+                              +
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="w-full border border-gray-300 mb-6 rounded-full"></div>
+
               {/* Desktop header with search and filters */}
               <div className="hidden md:flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">{activeCategory}</h2>
@@ -1027,6 +1170,9 @@ const StoreDetails = () => {
           </div>
         )}
       </div>
+      <div className="w-full border border-gray-300 my-6 rounded-full"></div>
+
+      <DemandForm />
     </div>
   );
 };
