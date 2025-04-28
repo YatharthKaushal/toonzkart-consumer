@@ -1,45 +1,66 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import toonzKartLogo from '../assets/toonzkart_logo.png';
-import { FaMapMarkerAlt, FaChevronDown, FaSearch, FaBars, FaTimes, FaBook, FaTimes as FaClose } from 'react-icons/fa';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import toonzKartLogo from "../assets/toonzkart_logo.png";
+import {
+  FaMapMarkerAlt,
+  FaChevronDown,
+  FaSearch,
+  FaBars,
+  FaTimes,
+  FaBook,
+  FaTimes as FaClose,
+} from "react-icons/fa";
 
 const HeroSection = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef(null);
-  
+
   // List of cities - same as in Header component
   const cities = [
-    "Indore", 
-    "Ujjain", 
-    "Dewas", 
-    // "Baroda", 
-    "Bhopal"
-    // "Surat", 
-    // "Ahmedabad", 
-    // "Raipur", 
-    // "Nagpur", 
-    // "Nashik", 
-    // "Pune"
+    "Indore",
+    "Ujjain",
+    "Dewas",
+    "Baroda",
+    "Bhopal",
+    "Bhilwara",
+    "Surat",
+    "Ahmedabad",
+    "Raipur",
+    "Nagpur",
+    "Nashik",
+    "Pune",
+    "Jaipur",
+    "Kota",
+    "Ajmer",
+    "Rajkot",
+    "Mumbai",
+    "Hyderabad",
+    "Banglore",
+    "Aurangabad",
+    "Delhi",
+    "Chandigarh",
   ];
-  
+
   // Get the selected city from localStorage for consistency with Header
-  const [selectedCity, setSelectedCity] = useState(localStorage.getItem('selectedCity') || "Indore");
+  const [selectedCity, setSelectedCity] = useState(
+    localStorage.getItem("selectedCity") || "Indore"
+  );
 
   // Update localStorage when the city changes
   const handleCityChange = (e) => {
     const newCity = e.target.value;
     setSelectedCity(newCity);
-    localStorage.setItem('selectedCity', newCity);
+    localStorage.setItem("selectedCity", newCity);
   };
 
   // Check login status from localStorage (or however you track auth)
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -49,11 +70,13 @@ const HeroSection = () => {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await fetch('https://backend-lzb7.onrender.com/api/books/book-names');
+        const response = await fetch(
+          "https://backend-lzb7.onrender.com/api/books/book-names"
+        );
         const data = await response.json();
         setBooks(data);
       } catch (error) {
-        console.error('Error fetching books:', error);
+        console.error("Error fetching books:", error);
       }
     };
 
@@ -64,9 +87,9 @@ const HeroSection = () => {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    
+
     if (value.trim()) {
-      const filtered = books.filter(book => 
+      const filtered = books.filter((book) =>
         book.title.toLowerCase().includes(value.toLowerCase())
       );
       setFilteredBooks(filtered);
@@ -84,18 +107,18 @@ const HeroSection = () => {
       setIsLoading(false);
     }, 800);
   };
-  
+
   // Close search dropdown with Escape key
   useEffect(() => {
     const handleEscKey = (event) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         setIsSearchFocused(false);
       }
     };
-    
-    document.addEventListener('keydown', handleEscKey);
+
+    document.addEventListener("keydown", handleEscKey);
     return () => {
-      document.removeEventListener('keydown', handleEscKey);
+      document.removeEventListener("keydown", handleEscKey);
     };
   }, []);
 
@@ -107,28 +130,28 @@ const HeroSection = () => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   // Handle book selection from search dropdown
   const handleBookSelect = (book) => {
     // Navigate to shop page with the selected book
-    navigate('/shop', { 
-      state: { 
-        selectedBook: book 
-      } 
+    navigate("/shop", {
+      state: {
+        selectedBook: book,
+      },
     });
     setIsSearchFocused(false);
   };
 
   const navItems = [
-    { name: 'Home', path: '/' },
-    { name: 'Order Now', path: '/shop' },
-    { name: 'About Us', path: '/about' },
-    { name: 'Contact Us', path: '/contact' },
+    { name: "Home", path: "/" },
+    { name: "Order Now", path: "/shop" },
+    { name: "About Us", path: "/about" },
+    { name: "Contact Us", path: "/contact" },
   ];
 
   return (
@@ -139,21 +162,21 @@ const HeroSection = () => {
           <nav className="flex justify-between items-center">
             {/* Logo for mobile */}
             <div className="flex md:hidden">
-              <img 
-                src={toonzKartLogo} 
-                alt="ToonzKart Logo" 
+              <img
+                src={toonzKartLogo}
+                alt="ToonzKart Logo"
                 className="h-12 object-contain"
               />
             </div>
-            
+
             {/* Mobile menu button */}
-            <button 
+            <button
               className="md:hidden text-white focus:outline-none"
               onClick={toggleMobileMenu}
             >
               {mobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
             </button>
-            
+
             {/* Attractive Desktop Navigation with all items in one row */}
             <ul className="hidden md:flex items-center justify-between w-full space-x-4">
               {/* Nav Items with attractive styling - now left aligned */}
@@ -168,20 +191,20 @@ const HeroSection = () => {
                   </li>
                 ))}
               </div>
-              
+
               {/* Login/Signup on right */}
               <div className="flex items-center space-x-2">
                 {!isLoggedIn ? (
                   <>
                     <span
                       className="px-4 py-2 cursor-pointer hover:bg-blue-500 bg-blue-600 text-white rounded-lg transition-all duration-300 uppercase font-medium text-sm"
-                      onClick={() => navigate('/login')}
+                      onClick={() => navigate("/login")}
                     >
                       Login
                     </span>
                     <span
                       className="px-4 py-2 cursor-pointer bg-transparent border border-white hover:bg-white hover:text-blue-900 text-white rounded-lg transition-all duration-300 uppercase font-medium text-sm"
-                      onClick={() => navigate('/signup')}
+                      onClick={() => navigate("/signup")}
                     >
                       Sign Up
                     </span>
@@ -189,7 +212,7 @@ const HeroSection = () => {
                 ) : (
                   <span
                     className="px-4 py-2 cursor-pointer bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all duration-300 uppercase font-medium text-sm"
-                    onClick={() => navigate('/profile')}
+                    onClick={() => navigate("/profile")}
                   >
                     Profile
                   </span>
@@ -197,7 +220,7 @@ const HeroSection = () => {
               </div>
             </ul>
           </nav>
-          
+
           {/* Mobile menu */}
           {mobileMenuOpen && (
             <div className="md:hidden bg-black bg-opacity-95 absolute top-16 left-0 w-full py-4 z-20">
@@ -214,13 +237,13 @@ const HeroSection = () => {
                     {item.name}
                   </li>
                 ))}
-                
+
                 {!isLoggedIn ? (
                   <>
                     <li
                       className="cursor-pointer bg-blue-600 hover:bg-blue-500 p-2 rounded text-center transition-all duration-200"
                       onClick={() => {
-                        navigate('/login');
+                        navigate("/login");
                         setMobileMenuOpen(false);
                       }}
                     >
@@ -229,7 +252,7 @@ const HeroSection = () => {
                     <li
                       className="cursor-pointer border border-white hover:bg-white hover:text-black p-2 rounded text-center transition-all duration-200"
                       onClick={() => {
-                        navigate('/signup');
+                        navigate("/signup");
                         setMobileMenuOpen(false);
                       }}
                     >
@@ -240,7 +263,7 @@ const HeroSection = () => {
                   <li
                     className="cursor-pointer bg-blue-600 hover:bg-blue-500 p-2 rounded text-center transition-all duration-200"
                     onClick={() => {
-                      navigate('/profile');
+                      navigate("/profile");
                       setMobileMenuOpen(false);
                     }}
                   >
@@ -279,17 +302,22 @@ const HeroSection = () => {
           </p>
 
           {/* Search Bar with Dropdown */}
-          <div className="relative w-full sm:w-4/5 lg:w-3/4 mx-auto" ref={searchRef}>
+          <div
+            className="relative w-full sm:w-4/5 lg:w-3/4 mx-auto"
+            ref={searchRef}
+          >
             <div className="flex justify-center items-center w-full bg-white rounded-full shadow px-3 py-1 border border-gray-300">
               <div className="flex items-center border-r border-gray-300 pl-4 pr-3">
                 <FaMapMarkerAlt className="text-red-500" />
-                <select 
+                <select
                   className="focus:outline-none bg-transparent cursor-pointer pl-2 pr-1 appearance-none text-gray-700"
                   value={selectedCity}
                   onChange={handleCityChange}
                 >
                   {cities.map((city, index) => (
-                    <option key={index} value={city}>{city}</option>
+                    <option key={index} value={city}>
+                      {city}
+                    </option>
                   ))}
                 </select>
                 <FaChevronDown className="text-gray-500 ml-1" />
@@ -304,9 +332,9 @@ const HeroSection = () => {
                   onFocus={handleSearchFocus}
                 />
                 {searchTerm && (
-                  <button 
+                  <button
                     onClick={() => {
-                      setSearchTerm('');
+                      setSearchTerm("");
                       setFilteredBooks([]);
                     }}
                     className="absolute right-2 text-gray-400 hover:text-gray-600 transition-colors"
@@ -322,16 +350,22 @@ const HeroSection = () => {
 
             {/* Search Results Dropdown */}
             {isSearchFocused && (
-              <div className="absolute z-50 w-full mt-2 bg-white shadow-xl rounded-lg max-h-96 overflow-y-auto text-left border border-gray-200" style={{ maxHeight: '80vh' }}>
+              <div
+                className="absolute z-50 w-full mt-2 bg-white shadow-xl rounded-lg max-h-96 overflow-y-auto text-left border border-gray-200"
+                style={{ maxHeight: "80vh" }}
+              >
                 <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-2 text-sm font-medium text-gray-600">
-                  {searchTerm ? 'Search Results' : 'Recent Books'}
+                  {searchTerm ? "Search Results" : "Recent Books"}
                 </div>
-                
+
                 {isLoading ? (
                   /* Shimmering Loader */
                   <div className="p-4">
                     {[1, 2, 3, 4, 5].map((item) => (
-                      <div key={item} className="animate-pulse flex items-center py-3">
+                      <div
+                        key={item}
+                        className="animate-pulse flex items-center py-3"
+                      >
                         <div className="h-4 bg-gray-200 rounded w-1/6 mr-3"></div>
                         <div className="h-5 bg-gray-200 rounded w-2/3"></div>
                       </div>
@@ -342,14 +376,18 @@ const HeroSection = () => {
                     {searchTerm && filteredBooks.length === 0 ? (
                       <div className="flex flex-col items-center justify-center p-8 text-gray-500">
                         <FaSearch className="text-4xl mb-2 text-gray-300" />
-                        <p className="text-center">No books found matching "{searchTerm}"</p>
-                        <p className="text-sm text-gray-400 mt-1">Try a different search term</p>
+                        <p className="text-center">
+                          No books found matching "{searchTerm}"
+                        </p>
+                        <p className="text-sm text-gray-400 mt-1">
+                          Try a different search term
+                        </p>
                       </div>
                     ) : (
                       <ul className="py-1">
                         {filteredBooks.map((book) => (
-                          <li 
-                            key={book._id} 
+                          <li
+                            key={book._id}
                             className="px-4 py-3 hover:bg-blue-50 cursor-pointer transition duration-150 flex items-center"
                             onClick={() => handleBookSelect(book)}
                           >
@@ -357,8 +395,12 @@ const HeroSection = () => {
                               <FaBook className="text-xs" />
                             </div>
                             <div>
-                              <p className="font-medium text-gray-800">{book.title}</p>
-                              <p className="text-xs text-gray-500">Book ID: {book._id.substring(0, 8)}...</p>
+                              <p className="font-medium text-gray-800">
+                                {book.title}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Book ID: {book._id.substring(0, 8)}...
+                              </p>
                             </div>
                           </li>
                         ))}
@@ -366,7 +408,7 @@ const HeroSection = () => {
                     )}
                   </>
                 )}
-                
+
                 <div className="border-t border-gray-200 px-4 py-2 bg-gray-50 text-xs text-center text-gray-500">
                   Press ESC to close or click outside
                 </div>
@@ -380,13 +422,6 @@ const HeroSection = () => {
 };
 
 export default HeroSection;
-
-
-
-
-
-
-
 
 // import React, { useState, useEffect, useRef } from 'react';
 // import { useNavigate } from 'react-router-dom';
@@ -402,22 +437,22 @@ export default HeroSection;
 //   const [isLoading, setIsLoading] = useState(false);
 //   const [isSearchFocused, setIsSearchFocused] = useState(false);
 //   const searchRef = useRef(null);
-  
+
 //   // List of cities - same as in Header component
 //   const cities = [
-//     "Indore", 
-//     "Ujjain", 
-//     "Dewas", 
-//     // "Baroda", 
+//     "Indore",
+//     "Ujjain",
+//     "Dewas",
+//     // "Baroda",
 //     "Bhopal"
-//     // "Surat", 
-//     // "Ahmedabad", 
-//     // "Raipur", 
-//     // "Nagpur", 
-//     // "Nashik", 
+//     // "Surat",
+//     // "Ahmedabad",
+//     // "Raipur",
+//     // "Nagpur",
+//     // "Nashik",
 //     // "Pune"
 //   ];
-  
+
 //   // Get the selected city from localStorage for consistency with Header
 //   const [selectedCity, setSelectedCity] = useState(localStorage.getItem('selectedCity') || "Indore");
 
@@ -454,9 +489,9 @@ export default HeroSection;
 //   const handleSearchChange = (e) => {
 //     const value = e.target.value;
 //     setSearchTerm(value);
-    
+
 //     if (value.trim()) {
-//       const filtered = books.filter(book => 
+//       const filtered = books.filter(book =>
 //         book.title.toLowerCase().includes(value.toLowerCase())
 //       );
 //       setFilteredBooks(filtered);
@@ -474,7 +509,7 @@ export default HeroSection;
 //       setIsLoading(false);
 //     }, 800);
 //   };
-  
+
 //   // Close search dropdown with Escape key
 //   useEffect(() => {
 //     const handleEscKey = (event) => {
@@ -482,7 +517,7 @@ export default HeroSection;
 //         setIsSearchFocused(false);
 //       }
 //     };
-    
+
 //     document.addEventListener('keydown', handleEscKey);
 //     return () => {
 //       document.removeEventListener('keydown', handleEscKey);
@@ -506,10 +541,10 @@ export default HeroSection;
 //   // Handle book selection from search dropdown
 //   const handleBookSelect = (book) => {
 //     // Navigate to shop page with the selected book
-//     navigate('/shop', { 
-//       state: { 
-//         selectedBook: book 
-//       } 
+//     navigate('/shop', {
+//       state: {
+//         selectedBook: book
+//       }
 //     });
 //     setIsSearchFocused(false);
 //   };
@@ -528,21 +563,21 @@ export default HeroSection;
 //         <nav className="flex justify-between items-center">
 //           {/* Logo for mobile */}
 //           <div className="flex md:hidden">
-//             <img 
-//               src={toonzKartLogo} 
-//               alt="ToonzKart Logo" 
+//             <img
+//               src={toonzKartLogo}
+//               alt="ToonzKart Logo"
 //               className="h-12 object-contain"
 //             />
 //           </div>
-          
+
 //           {/* Mobile menu button */}
-//           <button 
+//           <button
 //             className="md:hidden text-white focus:outline-none"
 //             onClick={toggleMobileMenu}
 //           >
 //             {mobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
 //           </button>
-          
+
 //           {/* Desktop Navigation */}
 //           <ul className="hidden md:flex space-x-4 lg:space-x-10 xl:space-x-16 justify-center text-base lg:text-lg uppercase">
 //             {navItems.map((item, index) => (
@@ -581,7 +616,7 @@ export default HeroSection;
 //             )}
 //           </ul>
 //         </nav>
-        
+
 //         {/* Mobile menu */}
 //         {mobileMenuOpen && (
 //           <div className="md:hidden bg-black bg-opacity-95 absolute top-16 left-0 w-full py-4 z-20">
@@ -598,7 +633,7 @@ export default HeroSection;
 //                   {item.name}
 //                 </li>
 //               ))}
-              
+
 //               {!isLoggedIn ? (
 //                 <>
 //                   <li
@@ -666,7 +701,7 @@ export default HeroSection;
 //             <div className="flex justify-center items-center w-full bg-white rounded-full shadow px-3 py-1 border border-gray-300">
 //               <div className="flex items-center border-r border-gray-300 pl-4 pr-3">
 //                 <FaMapMarkerAlt className="text-red-500" />
-//                 <select 
+//                 <select
 //                   className="focus:outline-none bg-transparent cursor-pointer pl-2 pr-1 appearance-none text-gray-700"
 //                   value={selectedCity}
 //                   onChange={handleCityChange}
@@ -687,7 +722,7 @@ export default HeroSection;
 //                   onFocus={handleSearchFocus}
 //                 />
 //                 {searchTerm && (
-//                   <button 
+//                   <button
 //                     onClick={() => {
 //                       setSearchTerm('');
 //                       setFilteredBooks([]);
@@ -709,7 +744,7 @@ export default HeroSection;
 //                 <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-2 text-sm font-medium text-gray-600">
 //                   {searchTerm ? 'Search Results' : 'Recent Books'}
 //                 </div>
-                
+
 //                 {isLoading ? (
 //                   /* Shimmering Loader */
 //                   <div className="p-4">
@@ -731,8 +766,8 @@ export default HeroSection;
 //                     ) : (
 //                       <ul className="py-1">
 //                         {filteredBooks.map((book) => (
-//                           <li 
-//                             key={book._id} 
+//                           <li
+//                             key={book._id}
 //                             className="px-4 py-3 hover:bg-blue-50 cursor-pointer transition duration-150 flex items-center"
 //                             onClick={() => handleBookSelect(book)}
 //                           >
@@ -749,7 +784,7 @@ export default HeroSection;
 //                     )}
 //                   </>
 //                 )}
-                
+
 //                 <div className="border-t border-gray-200 px-4 py-2 bg-gray-50 text-xs text-center text-gray-500">
 //                   Press ESC to close or click outside
 //                 </div>
@@ -763,19 +798,6 @@ export default HeroSection;
 // };
 
 // export default HeroSection;
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // import React, { useState, useEffect, useRef } from 'react';
 // import { useNavigate } from 'react-router-dom';
@@ -791,22 +813,22 @@ export default HeroSection;
 //   const [isLoading, setIsLoading] = useState(false);
 //   const [isSearchFocused, setIsSearchFocused] = useState(false);
 //   const searchRef = useRef(null);
-  
+
 //   // List of cities - same as in Header component
 //   const cities = [
-//     "Indore", 
-//     "Ujjain", 
-//     "Dewas", 
-//     // "Baroda", 
+//     "Indore",
+//     "Ujjain",
+//     "Dewas",
+//     // "Baroda",
 //     "Bhopal"
-//     // "Surat", 
-//     // "Ahmedabad", 
-//     // "Raipur", 
-//     // "Nagpur", 
-//     // "Nashik", 
+//     // "Surat",
+//     // "Ahmedabad",
+//     // "Raipur",
+//     // "Nagpur",
+//     // "Nashik",
 //     // "Pune"
 //   ];
-  
+
 //   // Get the selected city from localStorage for consistency with Header
 //   const [selectedCity, setSelectedCity] = useState(localStorage.getItem('selectedCity') || "Indore");
 
@@ -843,9 +865,9 @@ export default HeroSection;
 //   const handleSearchChange = (e) => {
 //     const value = e.target.value;
 //     setSearchTerm(value);
-    
+
 //     if (value.trim()) {
-//       const filtered = books.filter(book => 
+//       const filtered = books.filter(book =>
 //         book.title.toLowerCase().includes(value.toLowerCase())
 //       );
 //       setFilteredBooks(filtered);
@@ -863,7 +885,7 @@ export default HeroSection;
 //       setIsLoading(false);
 //     }, 800);
 //   };
-  
+
 //   // Close search dropdown with Escape key
 //   useEffect(() => {
 //     const handleEscKey = (event) => {
@@ -871,7 +893,7 @@ export default HeroSection;
 //         setIsSearchFocused(false);
 //       }
 //     };
-    
+
 //     document.addEventListener('keydown', handleEscKey);
 //     return () => {
 //       document.removeEventListener('keydown', handleEscKey);
@@ -895,10 +917,10 @@ export default HeroSection;
 //   // Handle book selection from search dropdown
 //   const handleBookSelect = (book) => {
 //     // Navigate to shop page with the selected book
-//     navigate('/shop', { 
-//       state: { 
-//         selectedBook: book 
-//       } 
+//     navigate('/shop', {
+//       state: {
+//         selectedBook: book
+//       }
 //     });
 //     setIsSearchFocused(false);
 //   };
@@ -917,21 +939,21 @@ export default HeroSection;
 //         <nav className="flex justify-between items-center">
 //           {/* Logo for mobile */}
 //           <div className="flex md:hidden">
-//             <img 
-//               src={toonzKartLogo} 
-//               alt="ToonzKart Logo" 
+//             <img
+//               src={toonzKartLogo}
+//               alt="ToonzKart Logo"
 //               className="h-12 object-contain"
 //             />
 //           </div>
-          
+
 //           {/* Mobile menu button */}
-//           <button 
+//           <button
 //             className="md:hidden text-white focus:outline-none"
 //             onClick={toggleMobileMenu}
 //           >
 //             {mobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
 //           </button>
-          
+
 //           {/* Desktop Navigation - Main Nav Items */}
 //           <ul className="hidden md:flex space-x-4 lg:space-x-10 xl:space-x-16 justify-center text-base lg:text-lg uppercase">
 //             {navItems.map((item, index) => (
@@ -944,7 +966,7 @@ export default HeroSection;
 //               </li>
 //             ))}
 //           </ul>
-          
+
 //           {/* Login/Signup or Profile at right side */}
 //           <div className="hidden md:flex space-x-6 text-base lg:text-lg uppercase">
 //             {!isLoggedIn ? (
@@ -972,7 +994,7 @@ export default HeroSection;
 //             )}
 //           </div>
 //         </nav>
-        
+
 //         {/* Mobile menu */}
 //         {mobileMenuOpen && (
 //           <div className="md:hidden bg-black bg-opacity-95 absolute top-16 left-0 w-full py-4 z-20">
@@ -989,7 +1011,7 @@ export default HeroSection;
 //                   {item.name}
 //                 </li>
 //               ))}
-              
+
 //               {!isLoggedIn ? (
 //                 <>
 //                   <li
@@ -1057,7 +1079,7 @@ export default HeroSection;
 //             <div className="flex justify-center items-center w-full bg-white rounded-full shadow px-3 py-1 border border-gray-300">
 //               <div className="flex items-center border-r border-gray-300 pl-4 pr-3">
 //                 <FaMapMarkerAlt className="text-red-500" />
-//                 <select 
+//                 <select
 //                   className="focus:outline-none bg-transparent cursor-pointer pl-2 pr-1 appearance-none text-gray-700"
 //                   value={selectedCity}
 //                   onChange={handleCityChange}
@@ -1078,7 +1100,7 @@ export default HeroSection;
 //                   onFocus={handleSearchFocus}
 //                 />
 //                 {searchTerm && (
-//                   <button 
+//                   <button
 //                     onClick={() => {
 //                       setSearchTerm('');
 //                       setFilteredBooks([]);
@@ -1100,7 +1122,7 @@ export default HeroSection;
 //                 <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-2 text-sm font-medium text-gray-600">
 //                   {searchTerm ? 'Search Results' : 'Recent Books'}
 //                 </div>
-                
+
 //                 {isLoading ? (
 //                   /* Shimmering Loader */
 //                   <div className="p-4">
@@ -1122,8 +1144,8 @@ export default HeroSection;
 //                     ) : (
 //                       <ul className="py-1">
 //                         {filteredBooks.map((book) => (
-//                           <li 
-//                             key={book._id} 
+//                           <li
+//                             key={book._id}
 //                             className="px-4 py-3 hover:bg-blue-50 cursor-pointer transition duration-150 flex items-center"
 //                             onClick={() => handleBookSelect(book)}
 //                           >
@@ -1140,7 +1162,7 @@ export default HeroSection;
 //                     )}
 //                   </>
 //                 )}
-                
+
 //                 <div className="border-t border-gray-200 px-4 py-2 bg-gray-50 text-xs text-center text-gray-500">
 //                   Press ESC to close or click outside
 //                 </div>
