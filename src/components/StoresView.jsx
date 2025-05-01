@@ -86,13 +86,15 @@ const StoresView = ({ selectedSchool, onBack }) => {
         ) : (
           <div className="w-full mx-auto bgwhite shadowlg col-span-full">
             {!loading && (
-              <p className="text-gray-600 text-center p-4 w-2/3 m-auto">
-                No stores available. Simply list your demands here and relax. No
-                need to search through our entire catalog — our experts will
-                find it for you and call back within 1 hour!
-              </p>
+              <>
+                <p className="text-gray-600 text-center p-4 w-2/3 m-auto">
+                  No stores available. Simply list your demands here and relax.
+                  No need to search through our entire catalog — our experts
+                  will find it for you and call back within 1 hour!
+                </p>
+                <DemandForm />
+              </>
             )}
-            <DemandForm />
           </div>
         )}
       </div>
