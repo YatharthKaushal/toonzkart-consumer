@@ -59,9 +59,11 @@ const StoreDetails = () => {
   const [showSearchBar, setShowSearchBar] = useState(false);
 
   const [isToonzkart, setIsToonzKart] = useState(false);
+  const [affiliatedSchools, setAffiliatedSchools] = useState([]);
+  const [currentSchool, setCurrentSchool] = useState();
 
   const [bookset, setBookset] = useState([]);
-  const [schoolName, setSchoolName] = useState("")
+  const [schoolName, setSchoolName] = useState("");
   const location = useLocation();
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -70,32 +72,57 @@ const StoreDetails = () => {
       console.log("School ID: not found");
       return;
     }
-    const fetchBookset = async () => {
-      try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/schools/${schoolId}`
-        );
-        if (response.data && response.data.bookset) {
-          console.log("> bookset: ", response.data.bookset);
-          setBookset(response.data.bookset);
-          setSchoolName(response.data.name)
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
 
-    fetchBookset();
+    fetchBookset(schoolId);
   }, [location.search]);
 
+  useEffect(() => {
+    fetchBookset(currentSchool);
+  }, [currentSchool]);
+
+  const fetchBookset = async (schoolId) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/schools/${schoolId}`
+      );
+      if (response.data && response.data.bookset) {
+        console.log("> bookset: ", response.data.bookset);
+        setBookset(response.data.bookset);
+        setSchoolName(response.data.name);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const handleBooksetBuy = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     const formData = new FormData();
-    formData.append("books", "")
+    formData.append("books", "");
     await axios.post(`${API_BASE_URL}/api/book-requests`, formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-  }
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  };
+
+  const fetchSchool = async (schoolId) => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/schools/${schoolId}`
+      );
+      if (response.data) {
+        // console.log("> bookset: ", response.data.bookset);
+        // setBookset(response.data.bookset);
+        // setSchoolName(response.data.name);
+        setAffiliatedSchools((prev) => [
+          ...prev,
+          { id: schoolId, name: response.data.name },
+        ]);
+        return response.data.name;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   // Fetch store details from API
   useEffect(() => {
@@ -110,6 +137,12 @@ const StoreDetails = () => {
           setIsToonzKart(true);
         }
         setStore(response.data);
+
+        const schools = response.data.schools;
+        schools.map((school) => {
+          fetchSchool(school);
+        });
+        // setAffiliatedSchools(response.data.schools);
 
         // Fetch books data after store is loaded
         if (
@@ -613,7 +646,7 @@ const StoreDetails = () => {
                   </div>
 
                   {/* Ratings Cards with enhanced design */}
-                  <div className="flex md:flex-col gap-3 md:w-64">
+                  {/* <div className="flex md:flex-col gap-3 md:w-64">
                     <div className="flex-1 md:w-full bg-gradient-to-r from-blue-50 to-blue-100 p-3 rounded-lg border border-blue-200">
                       <div className="flex items-start">
                         <div className="bg-blue-600 text-white p-2 rounded-md mr-3">
@@ -655,11 +688,11 @@ const StoreDetails = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Action Buttons */}
-                <div className="mt-6 flex flex-wrap gap-3">
+                {/* <div className="mt-6 flex flex-wrap gap-3">
                   <button className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm shadow-sm">
                     <Share size={16} className="mr-2 text-blue-600" />
                     <span>Share Store</span>
@@ -681,6 +714,39 @@ const StoreDetails = () => {
                     <Flame size={16} className="mr-2" />
                     <span>Shop By Demand</span>
                   </button>
+                </div> */}
+
+                {/* Affiliated Schools */}
+                <div className="mt-6 bg-blue-50 p-4 rounded-md">
+                  <h1 className="text-sm md:text-base text-blue-800 mb-3">
+                    Affiliated Schools
+                  </h1>
+                  <ul className="flex flex-wrap gap-3 text-md text-gray-600">
+                    {affiliatedSchools.map((school, index) => (
+                      <li key={index}>
+                        <button
+                          className="rounded-full shadow-xs px-4 py-1.5 bg-indigo-600 text-white cursor-pointer"
+                          onClick={() => {
+                            setCurrentSchool(school.id);
+                            const section =
+                              document.getElementById("listing-sec");
+                            if (section) {
+                              const yOffset = -200; // adjust this value to scroll less or more
+                              const y =
+                                section.getBoundingClientRect().top +
+                                window.pageYOffset +
+                                yOffset;
+
+                              window.scrollTo({ top: y, behavior: "smooth" });
+                              // section.scrollIntoView({ behavior: "smooth" });
+                            }
+                          }}
+                        >
+                          {school.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
                 {/* Delivery Info */}
@@ -697,11 +763,12 @@ const StoreDetails = () => {
         {isToonzkart ? (
           <DemandForm />
         ) : (
-          <div className="flex flex-col md:flex-row pb-8">
-            {/* Mobile filter and search bar */}
-            <div className="sticky top-16 z-40 bg-white border-b pb-2 mb-4 md:hidden">
-              <div className="flex justify-between items-center">
-                {/* <div className="flex items-center">
+          <>
+            <div className="flex flex-col md:flex-row pb-8">
+              {/* Mobile filter and search bar */}
+              <div className="sticky top-16 z-40 bg-white border-b pb-2 mb-4 md:hidden">
+                <div className="flex justify-between items-center">
+                  {/* <div className="flex items-center">
                 <button 
                   onClick={toggleFilters}
                   className="flex items-center border px-3 py-1 rounded-md text-sm mr-2"
@@ -715,245 +782,249 @@ const StoreDetails = () => {
                   <option>Price: High to Low</option>
                 </select>
               </div> */}
-                <button
-                  onClick={toggleSearchBar}
-                  className="p-2 rounded-md border"
-                >
-                  <Search size={16} className="text-gray-500" />
-                </button>
-              </div>
-
-              {/* Mobile search bar */}
-              {showSearchBar && (
-                <div className="mt-2 relative">
-                  <input
-                    type="text"
-                    placeholder="Search within store"
-                    className="w-full pl-8 pr-4 py-2 border rounded-md"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    autoFocus
-                  />
-                  <Search
-                    size={16}
-                    className="absolute left-3 top-3 text-gray-400"
-                  />
                   <button
-                    className="absolute right-3 top-3 text-gray-400"
-                    onClick={() => setSearchQuery("")}
+                    onClick={toggleSearchBar}
+                    className="p-2 rounded-md border"
                   >
-                    {searchQuery && <X size={16} />}
+                    <Search size={16} className="text-gray-500" />
                   </button>
                 </div>
-              )}
-            </div>
 
-            {/* Mobile sidebar drawer */}
-            {showFilters && (
-              <div className="fixed inset-0 z-50 md:hidden">
-                <div
-                  className="absolute inset-0 bg-black bg-opacity-50"
-                  onClick={toggleFilters}
-                ></div>
-                <div className="absolute top-0 left-0 h-full w-3/4 max-w-xs bg-white p-4 overflow-y-auto">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-semibold text-gray-800">Categories</h3>
-                    <button onClick={toggleFilters}>
-                      <X size={20} />
-                    </button>
-                  </div>
-                  <ul className="mb-6">
-                    {bookCategories.map((category) => (
-                      <li
-                        key={category.name}
-                        onClick={() => handleCategoryClick(category.name)}
-                        className={`p-3 cursor-pointer hover:bg-blue-50 transition-colors ${
-                          category.active
-                            ? "bg-blue-50 border-l-4 border-blue-600 text-blue-600"
-                            : "text-gray-700"
-                        }`}
-                      >
-                        {category.name} ({category.count})
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* Shop by Demand button in mobile drawer */}
-                  <div className="bg-gradient-to-r from-orange-100 to-yellow-100 p-3 rounded-md mb-4">
-                    <h3 className="font-semibold text-orange-800 mb-2 flex items-center text-sm">
-                      <Flame size={14} className="text-orange-600 mr-1" />
-                      Need something specific?
-                    </h3>
+                {/* Mobile search bar */}
+                {showSearchBar && (
+                  <div className="mt-2 relative">
+                    <input
+                      type="text"
+                      placeholder="Search within store"
+                      className="w-full pl-8 pr-4 py-2 border rounded-md"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      autoFocus
+                    />
+                    <Search
+                      size={16}
+                      className="absolute left-3 top-3 text-gray-400"
+                    />
                     <button
-                      onClick={() => {
-                        toggleFilters(); // Close the filter drawer
-                        navigate("/shop", { state: { activeTab: "demand" } });
-                      }}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-3 rounded-md transition-colors flex items-center justify-center text-sm"
+                      className="absolute right-3 top-3 text-gray-400"
+                      onClick={() => setSearchQuery("")}
                     >
-                      <Flame size={14} className="mr-1" />
-                      Shop by Demand
+                      {searchQuery && <X size={16} />}
                     </button>
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* Desktop Book Categories */}
-            <div className="hidden md:block w-64 mr-8">
-              <h3 className="font-semibold text-gray-800 mb-2 px-3">
-                Categories
-              </h3>
-              <ul className="mb-6">
-                {bookCategories.map((category) => (
-                  <li
-                    key={category.name}
-                    onClick={() => handleCategoryClick(category.name)}
-                    className={`p-3 cursor-pointer hover:bg-blue-50 transition-colors ${
-                      category.active
-                        ? "bg-blue-50 border-l-4 border-blue-600 text-blue-600"
-                        : "text-gray-700"
-                    }`}
-                  >
-                    {category.name} ({category.count})
-                  </li>
-                ))}
-              </ul>
-
-              {/* New Shop by Demand button replacing the old Store Info section */}
-              <div className="bg-gradient-to-r from-orange-100 to-yellow-100 p-4 rounded-md mb-6 shadow-sm">
-                <h3 className="font-semibold text-orange-800 mb-3 flex items-center">
-                  <Flame size={18} className="text-orange-600 mr-2" />
-                  Looking for something special?
-                </h3>
-                <p className="text-sm text-gray-700 mb-4">
-                  Can't find what you need? Try our Shop by Demand feature to
-                  request specific books or stationery items.
-                </p>
-                <button
-                  onClick={() =>
-                    navigate("/shop", { state: { activeTab: "demand" } })
-                  }
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center"
-                >
-                  <Flame size={16} className="mr-2" />
-                  Shop by Demand
-                </button>
-              </div>
-            </div>
-
-            {/* Book Listings */}
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold">
-                {schoolName ? `${schoolName} Booksets` : ""}
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-                {bookset.length == 0 ? (
-                  <></>
-                ) : (
-                  bookset.map((item) => (
-                    <div
-                      key={item._id}
-                      className="rounded-md p-2 md:p-3 md:w- hover:shadow-md transition-shadow flex flex-col justify-around h-80 shadow-sm"
-                    >
-                      <div className="m-auto bg-gray-50 w-full py-2 rounded-md mb-2">
-                        <SiBookstack
-                          size={50}
-                          color="gray"
-                          className="m-auto"
-                        />
-                      </div>
-                      <div className=" mb-2 flex itemscenter justify-center rounded overflow-hidden">
-                        <h4 className="text-gray-800 text-sm md:text-base line-clamp-3 font-black">
-                          {item.name} Bookset
-                        </h4>
-                      </div>
-
-                      <ul className="h-20 overflow-y-auto">
-                        {item.list.map((book, index) => (
-                          <li
-                            key={index}
-                            className="text-xs md:text-sm text-gray-500 line-clamp-1"
-                          >
-                            {book}
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="flex justify-between items-center mt-1 md:mt-2">
-                        <span className="font-bold text-sm md:text-base">
-                          {formatPrice(item.price)}
-                        </span>
-                        {item.originalPrice &&
-                          item.originalPrice > item.price && (
-                            <span className="text-xs text-gray-500 line-through">
-                              {formatPrice(item.originalPrice)}
-                            </span>
-                          )}
-                      </div>
-
-                      <div className="mt-auto pt-2 md:pt-3">
-                        {!bookQuantities[item._id] ? (
-                          <button
-                            onClick={() => addToCart(item)}
-                            className={`w-full bg-blue-600 text-white py-1 md:py-2 px-2 md:px-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center text-xs md:text-sm ${
-                              cartLoading ? "opacity-50 cursor-not-allowed" : ""
-                            }`}
-                            disabled={
-                              item.status ===  cartLoading
-                            }
-                          >
-                            {cartLoading ? (
-                              <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin mr-1"></div>
-                            ) : (
-                              <ShoppingCart size={14} className="mr-1" />
-                            )}
-                            <span>
-                              {item.status === "Out of Stock"
-                                ? "Out of Stock"
-                                : "Add to Cart"}
-                            </span>
-                          </button>
-                        ) : (
-                          <div className="w-full flex items-center justify-between border border-blue-600 rounded-md">
-                            <button
-                              onClick={() => updateQuantity(item._id, -1)}
-                              className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-l-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${
-                                cartLoading
-                                  ? "opacity-50 cursor-not-allowed"
-                                  : ""
-                              }`}
-                              disabled={cartLoading}
-                            >
-                              -
-                            </button>
-                            <span className="px-2 text-sm">
-                              {bookQuantities[item._id]}
-                            </span>
-                            <button
-                              onClick={() => updateQuantity(item._id, 1)}
-                              className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-r-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${
-                                cartLoading
-                                  ? "opacity-50 cursor-not-allowed"
-                                  : ""
-                              }`}
-                              disabled={cartLoading}
-                            >
-                              +
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))
                 )}
               </div>
-              <div className="w-full border border-gray-300 mb-6 rounded-full"></div>
 
-              {/* Desktop header with search and filters */}
-              <div className="hidden md:flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">{activeCategory}</h2>
-                <div className="flex items-center space-x-2">
-                  {/* <button className="flex items-center border px-3 py-1 rounded-md hover:bg-gray-50">
+              {/* Mobile sidebar drawer */}
+              {showFilters && (
+                <div className="fixed inset-0 z-50 md:hidden">
+                  <div
+                    className="absolute inset-0 bg-black bg-opacity-50"
+                    onClick={toggleFilters}
+                  ></div>
+                  <div className="absolute top-0 left-0 h-full w-3/4 max-w-xs bg-white p-4 overflow-y-auto">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-semibold text-gray-800">
+                        Categories
+                      </h3>
+                      <button onClick={toggleFilters}>
+                        <X size={20} />
+                      </button>
+                    </div>
+                    <ul className="mb-6">
+                      {bookCategories.map((category) => (
+                        <li
+                          key={category.name}
+                          onClick={() => handleCategoryClick(category.name)}
+                          className={`p-3 cursor-pointer hover:bg-blue-50 transition-colors ${
+                            category.active
+                              ? "bg-blue-50 border-l-4 border-blue-600 text-blue-600"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          {category.name} ({category.count})
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* Shop by Demand button in mobile drawer */}
+                    <div className="bg-gradient-to-r from-orange-100 to-yellow-100 p-3 rounded-md mb-4">
+                      <h3 className="font-semibold text-orange-800 mb-2 flex items-center text-sm">
+                        <Flame size={14} className="text-orange-600 mr-1" />
+                        Need something specific?
+                      </h3>
+                      <button
+                        onClick={() => {
+                          toggleFilters(); // Close the filter drawer
+                          navigate("/shop", { state: { activeTab: "demand" } });
+                        }}
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-3 rounded-md transition-colors flex items-center justify-center text-sm"
+                      >
+                        <Flame size={14} className="mr-1" />
+                        Shop by Demand
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Desktop Book Categories */}
+              <div className="hidden md:block w-64 mr-8">
+                <h3 className="font-semibold text-gray-800 mb-2 px-3">
+                  Categories
+                </h3>
+                <ul className="mb-6">
+                  {bookCategories.map((category) => (
+                    <li
+                      key={category.name}
+                      onClick={() => handleCategoryClick(category.name)}
+                      className={`p-3 cursor-pointer hover:bg-blue-50 transition-colors ${
+                        category.active
+                          ? "bg-blue-50 border-l-4 border-blue-600 text-blue-600"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      {category.name} ({category.count})
+                    </li>
+                  ))}
+                </ul>
+
+                {/* New Shop by Demand button replacing the old Store Info section */}
+                <div className="bg-gradient-to-r from-orange-100 to-yellow-100 p-4 rounded-md mb-6 shadow-sm">
+                  <h3 className="font-semibold text-orange-800 mb-3 flex items-center">
+                    <Flame size={18} className="text-orange-600 mr-2" />
+                    Looking for something special?
+                  </h3>
+                  <p className="text-sm text-gray-700 mb-4">
+                    Can't find what you need? Try our Shop by Demand feature to
+                    request specific books or stationery items.
+                  </p>
+                  <button
+                    onClick={() =>
+                      navigate("/shop", { state: { activeTab: "demand" } })
+                    }
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center"
+                  >
+                    <Flame size={16} className="mr-2" />
+                    Shop by Demand
+                  </button>
+                </div>
+              </div>
+
+              {/* Book Listings */}
+              <div id="listing-sec" className="flex-1">
+                <h2 className="text-2xl font-bold">
+                  {schoolName ? `${schoolName} Booksets` : ""}
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+                  {bookset.length == 0 && schoolName ? (
+                    <p className="text-red-600 bg-red-100 p-4 col-span-full rounded-sm border border-red-600">
+                      No Bookset Listed for This School!
+                    </p>
+                  ) : (
+                    bookset.map((item) => (
+                      <div
+                        key={item._id}
+                        className="rounded-md p-2 md:p-3 md:w- hover:shadow-md transition-shadow flex flex-col justify-around h-80 shadow-sm"
+                      >
+                        <div className="m-auto bg-gray-50 w-full py-2 rounded-md mb-2">
+                          <SiBookstack
+                            size={50}
+                            color="gray"
+                            className="m-auto"
+                          />
+                        </div>
+                        <div className=" mb-2 flex itemscenter justify-center rounded overflow-hidden">
+                          <h4 className="text-gray-800 text-sm md:text-base line-clamp-3 font-black">
+                            {item.name} Bookset
+                          </h4>
+                        </div>
+
+                        <ul className="h-20 overflow-y-auto">
+                          {item.list.map((book, index) => (
+                            <li
+                              key={index}
+                              className="text-xs md:text-sm text-gray-500 line-clamp-1"
+                            >
+                              {book}
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="flex justify-between items-center mt-1 md:mt-2">
+                          <span className="font-bold text-sm md:text-base">
+                            {formatPrice(item.price)}
+                          </span>
+                          {item.originalPrice &&
+                            item.originalPrice > item.price && (
+                              <span className="text-xs text-gray-500 line-through">
+                                {formatPrice(item.originalPrice)}
+                              </span>
+                            )}
+                        </div>
+
+                        <div className="mt-auto pt-2 md:pt-3">
+                          {!bookQuantities[item._id] ? (
+                            <button
+                              onClick={() => addToCart(item)}
+                              className={`w-full bg-blue-600 text-white py-1 md:py-2 px-2 md:px-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center text-xs md:text-sm ${
+                                cartLoading
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : ""
+                              }`}
+                              disabled={item.status === cartLoading}
+                            >
+                              {cartLoading ? (
+                                <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin mr-1"></div>
+                              ) : (
+                                <ShoppingCart size={14} className="mr-1" />
+                              )}
+                              <span>
+                                {item.status === "Out of Stock"
+                                  ? "Out of Stock"
+                                  : "Add to Cart"}
+                              </span>
+                            </button>
+                          ) : (
+                            <div className="w-full flex items-center justify-between border border-blue-600 rounded-md">
+                              <button
+                                onClick={() => updateQuantity(item._id, -1)}
+                                className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-l-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${
+                                  cartLoading
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }`}
+                                disabled={cartLoading}
+                              >
+                                -
+                              </button>
+                              <span className="px-2 text-sm">
+                                {bookQuantities[item._id]}
+                              </span>
+                              <button
+                                onClick={() => updateQuantity(item._id, 1)}
+                                className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-r-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${
+                                  cartLoading
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }`}
+                                disabled={cartLoading}
+                              >
+                                +
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="w-full border border-gray-300 mb-6 rounded-full"></div>
+
+                {/* Desktop header with search and filters */}
+                <div className="hidden md:flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold">{activeCategory}</h2>
+                  <div className="flex items-center space-x-2">
+                    {/* <button className="flex items-center border px-3 py-1 rounded-md hover:bg-gray-50">
                   <Filter size={16} className="mr-1" />
                   <span>Filters</span>
                 </button>
@@ -963,216 +1034,220 @@ const StoreDetails = () => {
                   <option>Price: High to Low</option>
                   <option>Newest Arrivals</option>
                 </select> */}
-                  <div className="relative">
-                    <Search
-                      size={16}
-                      className="absolute left-3 top-3 text-gray-400"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Search within store"
-                      className="pl-10 pr-4 py-2 border rounded-md w-64"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+                    <div className="relative">
+                      <Search
+                        size={16}
+                        className="absolute left-3 top-3 text-gray-400"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Search within store"
+                        className="pl-10 pr-4 py-2 border rounded-md w-64"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="hidden md:flex items-center text-gray-500 mb-6">
-                <div className="flex items-center mr-4">
-                  <ShoppingCart size={16} className="mr-1" />
-                  <span>Free delivery on orders above ₹499</span>
-                </div>
-              </div>
-
-              {/* Mobile category title */}
-              <div className="md:hidden mb-3">
-                <h2 className="text-lg font-bold">{activeCategory}</h2>
-              </div>
-
-              {/* Inventory Information */}
-              <div className="mb-4 p-3 md:p-4 bg-blue-50 rounded-md text-sm">
-                {booksLoading ? (
-                  <div className="animate-pulse">
-                    <div className="h-5 bg-gray-200 rounded w-1/3 mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+                <div className="hidden md:flex items-center text-gray-500 mb-6">
+                  <div className="flex items-center mr-4">
+                    <ShoppingCart size={16} className="mr-1" />
+                    <span>Free delivery on orders above ₹499</span>
                   </div>
-                ) : storeBooks.length > 0 ? (
-                  <>
-                    <h3 className="font-bold text-blue-800 mb-1 md:mb-2">
-                      Store Inventory
+                </div>
+
+                {/* Mobile category title */}
+                <div className="md:hidden mb-3">
+                  <h2 className="text-lg font-bold">{activeCategory}</h2>
+                </div>
+
+                {/* Inventory Information */}
+                <div className="mb-4 p-3 md:p-4 bg-blue-50 rounded-md text-sm">
+                  {booksLoading ? (
+                    <div className="animate-pulse">
+                      <div className="h-5 bg-gray-200 rounded w-1/3 mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+                    </div>
+                  ) : storeBooks.length > 0 ? (
+                    <>
+                      <h3 className="font-bold text-blue-800 mb-1 md:mb-2">
+                        Store Inventory
+                      </h3>
+                      <p className="text-gray-700 text-xs md:text-sm">
+                        We have {storeBooks.length} books available in our
+                        store.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="font-bold text-blue-800 mb-1 md:mb-2">
+                        No Books Available
+                      </h3>
+                      <p className="text-gray-700 text-xs md:text-sm">
+                        Sorry, this store currently doesn't have any books in
+                        inventory.
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                {/* Books Error Message */}
+                {booksError && (
+                  <div className="mb-4 p-3 md:p-4 bg-red-50 rounded-md border border-red-200">
+                    <h3 className="font-bold text-red-800 mb-2">
+                      Error Loading Books
                     </h3>
-                    <p className="text-gray-700 text-xs md:text-sm">
-                      We have {storeBooks.length} books available in our store.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="font-bold text-blue-800 mb-1 md:mb-2">
-                      No Books Available
-                    </h3>
-                    <p className="text-gray-700 text-xs md:text-sm">
-                      Sorry, this store currently doesn't have any books in
-                      inventory.
-                    </p>
-                  </>
+                    <p className="text-gray-700 text-sm">{booksError}</p>
+                  </div>
                 )}
-              </div>
 
-              {/* Books Error Message */}
-              {booksError && (
-                <div className="mb-4 p-3 md:p-4 bg-red-50 rounded-md border border-red-200">
-                  <h3 className="font-bold text-red-800 mb-2">
-                    Error Loading Books
-                  </h3>
-                  <p className="text-gray-700 text-sm">{booksError}</p>
-                </div>
-              )}
-
-              {/* Book Grid - Adjusted for mobile */}
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-                {booksLoading ? (
-                  // Loading placeholders for books
-                  Array(4)
-                    .fill()
-                    .map((_, index) => (
+                {/* Book Grid - Adjusted for mobile */}
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+                  {booksLoading ? (
+                    // Loading placeholders for books
+                    Array(4)
+                      .fill()
+                      .map((_, index) => (
+                        <div
+                          key={index}
+                          className="border rounded-md p-2 md:p-3 flex flex-col h-full"
+                        >
+                          <div className="animate-pulse">
+                            <div className="h-32 md:h-40 mb-2 bg-gray-200 rounded"></div>
+                            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+                            <div className="h-3 bg-gray-200 rounded w-1/3 mb-3"></div>
+                            <div className="h-5 bg-gray-200 rounded w-1/4 mb-3"></div>
+                            <div className="h-8 bg-gray-200 rounded w-full mt-auto"></div>
+                          </div>
+                        </div>
+                      ))
+                  ) : displayedBooks.length > 0 ? (
+                    displayedBooks.map((book) => (
                       <div
-                        key={index}
-                        className="border rounded-md p-2 md:p-3 flex flex-col h-full"
+                        key={book._id}
+                        className="border rounded-md p-2 md:p-3 hover:shadow-md transition-shadow flex flex-col h-full"
                       >
-                        <div className="animate-pulse">
-                          <div className="h-32 md:h-40 mb-2 bg-gray-200 rounded"></div>
-                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/3 mb-3"></div>
-                          <div className="h-5 bg-gray-200 rounded w-1/4 mb-3"></div>
-                          <div className="h-8 bg-gray-200 rounded w-full mt-auto"></div>
+                        <div className="h-32 md:h-40 mb-2 bg-gray-100 flex items-center justify-center rounded overflow-hidden">
+                          {book.image ? (
+                            <img
+                              src={`${book.image}`}
+                              alt={book.title}
+                              className="h-full w-full object-cover"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src =
+                                  "https://via.placeholder.com/150x200?text=No+Image";
+                              }}
+                            />
+                          ) : (
+                            <div className="text-gray-400 text-center text-xs p-2 md:p-4 md:text-sm">
+                              No Image Available
+                            </div>
+                          )}
+                        </div>
+                        <h4 className="font-medium text-gray-800 text-sm md:text-base line-clamp-2">
+                          {book.title}
+                        </h4>
+                        <p className="text-xs md:text-sm text-gray-500 line-clamp-1">
+                          {book.author}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {book.publisher || book.category}
+                        </p>
+                        <div className="flex justify-between items-center mt-1 md:mt-2">
+                          <span className="font-bold text-sm md:text-base">
+                            {formatPrice(book.price)}
+                          </span>
+                          {book.originalPrice &&
+                            book.originalPrice > book.price && (
+                              <span className="text-xs text-gray-500 line-through">
+                                {formatPrice(book.originalPrice)}
+                              </span>
+                            )}
+                        </div>
+                        <div className="mt-auto pt-2 md:pt-3">
+                          {!bookQuantities[book._id] ? (
+                            <button
+                              onClick={() => addToCart(book)}
+                              className={`w-full bg-blue-600 text-white py-1 md:py-2 px-2 md:px-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center text-xs md:text-sm ${
+                                cartLoading
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : ""
+                              }`}
+                              disabled={
+                                book.status === "Out of Stock" || cartLoading
+                              }
+                            >
+                              {cartLoading ? (
+                                <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin mr-1"></div>
+                              ) : (
+                                <ShoppingCart size={14} className="mr-1" />
+                              )}
+                              <span>
+                                {book.status === "Out of Stock"
+                                  ? "Out of Stock"
+                                  : "Add to Cart"}
+                              </span>
+                            </button>
+                          ) : (
+                            <div className="w-full flex items-center justify-between border border-blue-600 rounded-md">
+                              <button
+                                onClick={() => updateQuantity(book._id, -1)}
+                                className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-l-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${
+                                  cartLoading
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }`}
+                                disabled={cartLoading}
+                              >
+                                -
+                              </button>
+                              <span className="px-2 text-sm">
+                                {bookQuantities[book._id]}
+                              </span>
+                              <button
+                                onClick={() => updateQuantity(book._id, 1)}
+                                className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-r-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${
+                                  cartLoading
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }`}
+                                disabled={cartLoading}
+                              >
+                                +
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))
-                ) : displayedBooks.length > 0 ? (
-                  displayedBooks.map((book) => (
-                    <div
-                      key={book._id}
-                      className="border rounded-md p-2 md:p-3 hover:shadow-md transition-shadow flex flex-col h-full"
-                    >
-                      <div className="h-32 md:h-40 mb-2 bg-gray-100 flex items-center justify-center rounded overflow-hidden">
-                        {book.image ? (
-                          <img
-                            src={`${book.image}`}
-                            alt={book.title}
-                            className="h-full w-full object-cover"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src =
-                                "https://via.placeholder.com/150x200?text=No+Image";
-                            }}
-                          />
-                        ) : (
-                          <div className="text-gray-400 text-center text-xs p-2 md:p-4 md:text-sm">
-                            No Image Available
-                          </div>
-                        )}
-                      </div>
-                      <h4 className="font-medium text-gray-800 text-sm md:text-base line-clamp-2">
-                        {book.title}
-                      </h4>
-                      <p className="text-xs md:text-sm text-gray-500 line-clamp-1">
-                        {book.author}
+                  ) : (
+                    <div className="col-span-full text-center p-4 md:p-8 bg-gray-50 rounded-md">
+                      <p className="text-gray-500 text-sm md:text-base">
+                        No books found matching your criteria.
                       </p>
-                      <p className="text-xs text-gray-400">
-                        {book.publisher || book.category}
-                      </p>
-                      <div className="flex justify-between items-center mt-1 md:mt-2">
-                        <span className="font-bold text-sm md:text-base">
-                          {formatPrice(book.price)}
-                        </span>
-                        {book.originalPrice &&
-                          book.originalPrice > book.price && (
-                            <span className="text-xs text-gray-500 line-through">
-                              {formatPrice(book.originalPrice)}
-                            </span>
-                          )}
-                      </div>
-                      <div className="mt-auto pt-2 md:pt-3">
-                        {!bookQuantities[book._id] ? (
-                          <button
-                            onClick={() => addToCart(book)}
-                            className={`w-full bg-blue-600 text-white py-1 md:py-2 px-2 md:px-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center text-xs md:text-sm ${
-                              cartLoading ? "opacity-50 cursor-not-allowed" : ""
-                            }`}
-                            disabled={
-                              book.status === "Out of Stock" || cartLoading
-                            }
-                          >
-                            {cartLoading ? (
-                              <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin mr-1"></div>
-                            ) : (
-                              <ShoppingCart size={14} className="mr-1" />
-                            )}
-                            <span>
-                              {book.status === "Out of Stock"
-                                ? "Out of Stock"
-                                : "Add to Cart"}
-                            </span>
-                          </button>
-                        ) : (
-                          <div className="w-full flex items-center justify-between border border-blue-600 rounded-md">
-                            <button
-                              onClick={() => updateQuantity(book._id, -1)}
-                              className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-l-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${
-                                cartLoading
-                                  ? "opacity-50 cursor-not-allowed"
-                                  : ""
-                              }`}
-                              disabled={cartLoading}
-                            >
-                              -
-                            </button>
-                            <span className="px-2 text-sm">
-                              {bookQuantities[book._id]}
-                            </span>
-                            <button
-                              onClick={() => updateQuantity(book._id, 1)}
-                              className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-r-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${
-                                cartLoading
-                                  ? "opacity-50 cursor-not-allowed"
-                                  : ""
-                              }`}
-                              disabled={cartLoading}
-                            >
-                              +
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                      <button
+                        onClick={() => {
+                          setActiveCategory("All Books");
+                          setSearchQuery("");
+                        }}
+                        className="mt-3 text-blue-600 hover:underline text-sm"
+                      >
+                        Reset filters
+                      </button>
                     </div>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center p-4 md:p-8 bg-gray-50 rounded-md">
-                    <p className="text-gray-500 text-sm md:text-base">
-                      No books found matching your criteria.
-                    </p>
-                    <button
-                      onClick={() => {
-                        setActiveCategory("All Books");
-                        setSearchQuery("");
-                      }}
-                      className="mt-3 text-blue-600 hover:underline text-sm"
-                    >
-                      Reset filters
-                    </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+            <div className="w-full border border-gray-300 my-6 rounded-full"></div>
+
+            <DemandForm />
+          </>
         )}
       </div>
-      <div className="w-full border border-gray-300 my-6 rounded-full"></div>
-
-      <DemandForm />
     </div>
   );
 };
