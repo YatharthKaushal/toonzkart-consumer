@@ -18,6 +18,7 @@ import {
   MapPin,
   Clock,
   Phone,
+  ChevronDown,
 } from "lucide-react";
 import Header from "../components/Header";
 import toonzkartLogo from "../assets/toonzkart_logo.png";
@@ -61,10 +62,14 @@ const StoreDetails = () => {
   const [isToonzkart, setIsToonzKart] = useState(false);
   const [affiliatedSchools, setAffiliatedSchools] = useState([]);
   const [currentSchool, setCurrentSchool] = useState();
+  
+  // New state for displaying limited number of schools
+  const [schoolsToShow, setSchoolsToShow] = useState(6);
 
   const [bookset, setBookset] = useState([]);
   const [schoolName, setSchoolName] = useState("");
   const location = useLocation();
+  
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const schoolId = queryParams.get("school");
@@ -172,6 +177,11 @@ const StoreDetails = () => {
       setBooksLoading(false);
     }
   }, [id]);
+
+  // Handle Show More button click
+  const handleShowMore = () => {
+    setSchoolsToShow(prev => prev + 6);
+  };
 
   // Fetch all books and filter for this store's inventory
   const fetchAllBooks = async (inventory) => {
@@ -644,109 +654,51 @@ const StoreDetails = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Ratings Cards with enhanced design */}
-                  {/* <div className="flex md:flex-col gap-3 md:w-64">
-                    <div className="flex-1 md:w-full bg-gradient-to-r from-blue-50 to-blue-100 p-3 rounded-lg border border-blue-200">
-                      <div className="flex items-start">
-                        <div className="bg-blue-600 text-white p-2 rounded-md mr-3">
-                          <Star size={18} fill="white" />
-                        </div>
-                        <div>
-                          <div className="flex items-baseline">
-                            <span className="text-2xl font-bold text-blue-800">
-                              4.2
-                            </span>
-                            <span className="text-sm text-blue-600 ml-1">
-                              /5
-                            </span>
-                          </div>
-                          <div className="text-xs text-gray-600">
-                            Based on 235 store ratings
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex-1 md:w-full bg-gradient-to-r from-green-50 to-green-100 p-3 rounded-lg border border-green-200">
-                      <div className="flex items-start">
-                        <div className="bg-green-600 text-white p-2 rounded-md mr-3">
-                          <ShoppingCart size={18} fill="white" />
-                        </div>
-                        <div>
-                          <div className="flex items-baseline">
-                            <span className="text-2xl font-bold text-green-800">
-                              4.5
-                            </span>
-                            <span className="text-sm text-green-600 ml-1">
-                              /5
-                            </span>
-                          </div>
-                          <div className="text-xs text-gray-600">
-                            Based on 1.2K delivery ratings
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div> */}
                 </div>
 
-                {/* Action Buttons */}
-                {/* <div className="mt-6 flex flex-wrap gap-3">
-                  <button className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm shadow-sm">
-                    <Share size={16} className="mr-2 text-blue-600" />
-                    <span>Share Store</span>
-                  </button>
-
-                  <button className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-sm shadow-sm">
-                    <Navigation size={16} className="mr-2 text-blue-600" />
-                    <span>Get Directions</span>
-                  </button>
-
-                  <button // thisss
-                    onClick={() =>
-                      navigate("/shop", { state: { activeTab: "demand" } })
-                    }
-                    className={`${
-                      isToonzkart ? "hidden" : ""
-                    } flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-md hover:from-orange-600 hover:to-orange-700 transition-colors text-sm shadow-md ml-auto`}
-                  >
-                    <Flame size={16} className="mr-2" />
-                    <span>Shop By Demand</span>
-                  </button>
-                </div> */}
-
-                {/* Affiliated Schools */}
+                {/* Affiliated Schools with Show More button */}
                 <div className="mt-6 bg-blue-50 p-4 rounded-md">
                   <h1 className="text-sm md:text-base text-blue-800 mb-3">
                     Affiliated Schools
                   </h1>
-                  <ul className="flex flex-wrap gap-3 text-md text-gray-600">
-                    {affiliatedSchools.map((school, index) => (
-                      <li key={index}>
-                        <button
-                          className="rounded-full shadow-xs px-4 py-1.5 bg-indigo-600 text-white cursor-pointer"
-                          onClick={() => {
-                            setCurrentSchool(school.id);
-                            const section =
-                              document.getElementById("listing-sec");
-                            if (section) {
-                              const yOffset = -200; // adjust this value to scroll less or more
-                              const y =
-                                section.getBoundingClientRect().top +
-                                window.pageYOffset +
-                                yOffset;
+                  <div>
+                    <ul className="flex flex-wrap gap-3 text-md text-gray-600">
+                      {affiliatedSchools.slice(0, schoolsToShow).map((school, index) => (
+                        <li key={index}>
+                          <button
+                            className="rounded-full shadow-xs px-4 py-1.5 bg-indigo-600 text-white cursor-pointer"
+                            onClick={() => {
+                              setCurrentSchool(school.id);
+                              const section =
+                                document.getElementById("listing-sec");
+                              if (section) {
+                                const yOffset = -200; // adjust this value to scroll less or more
+                                const y =
+                                  section.getBoundingClientRect().top +
+                                  window.pageYOffset +
+                                  yOffset;
 
-                              window.scrollTo({ top: y, behavior: "smooth" });
-                              // section.scrollIntoView({ behavior: "smooth" });
-                            }
-                          }}
-                        >
-                          {school.name}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                                window.scrollTo({ top: y, behavior: "smooth" });
+                              }
+                            }}
+                          >
+                            {school.name}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    {/* Show More button - only visible if there are more schools to show */}
+                    {affiliatedSchools.length > schoolsToShow && (
+                      <button 
+                        onClick={handleShowMore}
+                        className="mt-3 flex items-center text-indigo-600 hover:text-indigo-800 transition-colors text-sm"
+                      >
+                        <span>Show More</span>
+                        <ChevronDown size={16} className="ml-1" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Delivery Info */}
@@ -759,6 +711,7 @@ const StoreDetails = () => {
           )}
         </div>
 
+        {/* Rest of the component remains the same... */}
         {/* Browse Books Section */}
         {isToonzkart ? (
           <DemandForm />
@@ -768,20 +721,6 @@ const StoreDetails = () => {
               {/* Mobile filter and search bar */}
               <div className="sticky top-16 z-40 bg-white border-b pb-2 mb-4 md:hidden">
                 <div className="flex justify-between items-center">
-                  {/* <div className="flex items-center">
-                <button 
-                  onClick={toggleFilters}
-                  className="flex items-center border px-3 py-1 rounded-md text-sm mr-2"
-                >
-                  <Filter size={14} className="mr-1" />
-                  <span>Filters</span>
-                </button>
-                <select className="border px-3 py-1 rounded-md bg-white text-sm">
-                  <option>Sort</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                </select>
-              </div> */}
                   <button
                     onClick={toggleSearchBar}
                     className="p-2 rounded-md border"
@@ -903,8 +842,7 @@ const StoreDetails = () => {
                     onClick={() =>
                       navigate("/shop", { state: { activeTab: "demand" } })
                     }
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center"
-                  >
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center">
                     <Flame size={16} className="mr-2" />
                     Shop by Demand
                   </button>
@@ -1024,16 +962,6 @@ const StoreDetails = () => {
                 <div className="hidden md:flex justify-between items-center mb-4">
                   <h2 className="text-2xl font-bold">{activeCategory}</h2>
                   <div className="flex items-center space-x-2">
-                    {/* <button className="flex items-center border px-3 py-1 rounded-md hover:bg-gray-50">
-                  <Filter size={16} className="mr-1" />
-                  <span>Filters</span>
-                </button>
-                <select className="border px-3 py-1 rounded-md bg-white">
-                  <option>Sort by: Popularity</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                  <option>Newest Arrivals</option>
-                </select> */}
                     <div className="relative">
                       <Search
                         size={16}
