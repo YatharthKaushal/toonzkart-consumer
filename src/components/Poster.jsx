@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import podarschool_poster from "../assets/podarschool_poster.png";
-import poster2 from "../assets/toonzkart_logo.png";
-import poster3 from "../assets/toonzkart_logo1.png";
+import toonzkart_banner_1 from "../assets/Toonzkart_banner_1.png";
+import toonzkart_banner_2 from "../assets/Toonzkart_banner_2.png";
 
 const Poster = () => {
   // Array of poster images
-  const images = [poster2, podarschool_poster, poster3];
+  const images = [toonzkart_banner_1, podarschool_poster, toonzkart_banner_2];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartX, setDragStartX] = useState(0);
