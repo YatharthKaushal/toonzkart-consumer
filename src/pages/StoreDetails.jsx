@@ -62,14 +62,14 @@ const StoreDetails = () => {
   const [isToonzkart, setIsToonzKart] = useState(false);
   const [affiliatedSchools, setAffiliatedSchools] = useState([]);
   const [currentSchool, setCurrentSchool] = useState();
-  
+
   // New state for displaying limited number of schools
   const [schoolsToShow, setSchoolsToShow] = useState(6);
 
   const [bookset, setBookset] = useState([]);
   const [schoolName, setSchoolName] = useState("");
   const location = useLocation();
-  
+
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const schoolId = queryParams.get("school");
@@ -129,6 +129,32 @@ const StoreDetails = () => {
     }
   };
 
+  const [allBookSets, setAllBookSets] = useState([]);
+  const allBookSetFetch = async () => {
+    affiliatedSchools.map(async (schoolId) => {
+      // console.log("> schoolId: ", schoolId.id);
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/schools/${schoolId.id}`
+        );
+        if (response.data && response.data.bookset) {
+          console.log("> bookset: ", response.data.bookset);
+          setAllBookSets((prev) => [...prev, ...response.data.bookset]);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    });
+  };
+
+  useEffect(() => {
+    allBookSetFetch();
+  }, [affiliatedSchools]);
+
+  useEffect(() => {
+    console.log("> allBookSets: ", allBookSets);
+  }, [allBookSets]);
+
   // Fetch store details from API
   useEffect(() => {
     const fetchStoreDetails = async () => {
@@ -180,7 +206,7 @@ const StoreDetails = () => {
 
   // Handle Show More button click
   const handleShowMore = () => {
-    setSchoolsToShow(prev => prev + 6);
+    setSchoolsToShow((prev) => prev + 6);
   };
 
   // Fetch all books and filter for this store's inventory
@@ -663,34 +689,39 @@ const StoreDetails = () => {
                   </h1>
                   <div>
                     <ul className="flex flex-wrap gap-3 text-md text-gray-600">
-                      {affiliatedSchools.slice(0, schoolsToShow).map((school, index) => (
-                        <li key={index}>
-                          <button
-                            className="rounded-full shadow-xs px-4 py-1.5 bg-indigo-600 text-white cursor-pointer"
-                            onClick={() => {
-                              setCurrentSchool(school.id);
-                              const section =
-                                document.getElementById("listing-sec");
-                              if (section) {
-                                const yOffset = -200; // adjust this value to scroll less or more
-                                const y =
-                                  section.getBoundingClientRect().top +
-                                  window.pageYOffset +
-                                  yOffset;
+                      {affiliatedSchools
+                        .slice(0, schoolsToShow)
+                        .map((school, index) => (
+                          <li key={index}>
+                            <button
+                              className="rounded-full shadow-xs px-4 py-1.5 bg-indigo-600 text-white cursor-pointer"
+                              onClick={() => {
+                                setCurrentSchool(school.id);
+                                const section =
+                                  document.getElementById("listing-sec");
+                                if (section) {
+                                  const yOffset = -200; // adjust this value to scroll less or more
+                                  const y =
+                                    section.getBoundingClientRect().top +
+                                    window.pageYOffset +
+                                    yOffset;
 
-                                window.scrollTo({ top: y, behavior: "smooth" });
-                              }
-                            }}
-                          >
-                            {school.name}
-                          </button>
-                        </li>
-                      ))}
+                                  window.scrollTo({
+                                    top: y,
+                                    behavior: "smooth",
+                                  });
+                                }
+                              }}
+                            >
+                              {school.name}
+                            </button>
+                          </li>
+                        ))}
                     </ul>
-                    
+
                     {/* Show More button - only visible if there are more schools to show */}
                     {affiliatedSchools.length > schoolsToShow && (
-                      <button 
+                      <button
                         onClick={handleShowMore}
                         className="mt-3 flex items-center text-indigo-600 hover:text-indigo-800 transition-colors text-sm"
                       >
@@ -785,7 +816,6 @@ const StoreDetails = () => {
                         </li>
                       ))}
                     </ul>
-
                     {/* Shop by Demand button in mobile drawer */}
                     <div className="bg-gradient-to-r from-orange-100 to-yellow-100 p-3 rounded-md mb-4">
                       <h3 className="font-semibold text-orange-800 mb-2 flex items-center text-sm">
@@ -828,6 +858,60 @@ const StoreDetails = () => {
                   ))}
                 </ul>
 
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-800 mb-2 px-3">
+                    Schools
+                  </h3>
+                  <ul className="flex flex-col gap-3 text-md text-gray-600">
+                    {affiliatedSchools
+                      .slice(0, schoolsToShow)
+                      .map((school, index) => (
+                        <li
+                          key={index}
+                          className={`cursor-pointer hover:bg-blue-50 transition-colors ${
+                            currentSchool == school.id
+                              ? "bg-blue-50 border-l-4 border-blue-600 text-blue-600"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          <button
+                            className="p-3 w-full roundedfull shadowxs px4 py1.5 bg-indigo600 textwhite cursor-pointer text-left"
+                            onClick={() => {
+                              setCurrentSchool(school.id);
+                              const section =
+                                document.getElementById("listing-sec");
+                              if (section) {
+                                const yOffset = -200; // adjust this value to scroll less or more
+                                const y =
+                                  section.getBoundingClientRect().top +
+                                  window.pageYOffset +
+                                  yOffset;
+
+                                window.scrollTo({
+                                  top: y,
+                                  behavior: "smooth",
+                                });
+                              }
+                            }}
+                          >
+                            {school.name}
+                          </button>
+                        </li>
+                      ))}
+                  </ul>
+
+                  {/* Show More button - only visible if there are more schools to show */}
+                  {affiliatedSchools.length > schoolsToShow && (
+                    <button
+                      onClick={handleShowMore}
+                      className="mt-3 flex items-center text-indigo-600 hover:text-indigo-800 transition-colors text-sm"
+                    >
+                      <span>Show More</span>
+                      <ChevronDown size={16} className="ml-1" />
+                    </button>
+                  )}
+                </div>
+
                 {/* New Shop by Demand button replacing the old Store Info section */}
                 <div className="bg-gradient-to-r from-orange-100 to-yellow-100 p-4 rounded-md mb-6 shadow-sm">
                   <h3 className="font-semibold text-orange-800 mb-3 flex items-center">
@@ -842,7 +926,8 @@ const StoreDetails = () => {
                     onClick={() =>
                       navigate("/shop", { state: { activeTab: "demand" } })
                     }
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center">
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center"
+                  >
                     <Flame size={16} className="mr-2" />
                     Shop by Demand
                   </button>
@@ -863,7 +948,7 @@ const StoreDetails = () => {
                     bookset.map((item) => (
                       <div
                         key={item._id}
-                        className="rounded-md p-2 md:p-3 md:w- hover:shadow-md transition-shadow flex flex-col justify-around h-80 shadow-sm"
+                        className="rounded-md p-2 md:p-3 md:w- hover:shadow-md transition-shadow flex flex-col justify-around min-h-80 max-h-96 shadow-sm"
                       >
                         <div className="m-auto bg-gray-50 w-full py-2 rounded-md mb-2">
                           <SiBookstack
@@ -873,7 +958,7 @@ const StoreDetails = () => {
                           />
                         </div>
                         <div className=" mb-2 flex itemscenter justify-center rounded overflow-hidden">
-                          <h4 className="text-gray-800 text-sm md:text-base line-clamp-3 font-black">
+                          <h4 className="text-gray-800 text-sm md:text-base line-clamp-4 font-black">
                             {item.name} Bookset
                           </h4>
                         </div>
@@ -1168,6 +1253,114 @@ const StoreDetails = () => {
                     </div>
                   )}
                 </div>
+
+                <div className="w-full border border-gray-300 my-6"></div>
+                {/* BOOKSET GRID */}
+                <h2 className="text-2xl font-bold py4">ALL BOOKSETS</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+                  {allBookSets.length == 0 ? (
+                    <p className="text-red-600 bg-red-100 p-4 col-span-full rounded-sm border border-red-600">
+                      No Bookset Listed.
+                    </p>
+                  ) : (
+                    allBookSets.map((item) => (
+                      <div
+                        key={item._id}
+                        className="rounded-md p-2 md:p-3 md:w- hover:shadow-md transition-shadow flex flex-col justify-around min-h-80 max-h-96 shadow-sm"
+                      >
+                        <div className="m-auto bg-gray-50 w-full py-2 rounded-md mb-2">
+                          <SiBookstack
+                            size={50}
+                            color="gray"
+                            className="m-auto"
+                          />
+                        </div>
+                        <div className=" mb-2 flex itemscenter justify-center rounded overflow-hidden">
+                          <h4 className="text-gray-800 text-sm md:text-base line-clamp-3 font-black">
+                            {item.name} Bookset
+                          </h4>
+                        </div>
+
+                        <ul className="h-20 overflow-y-auto">
+                          {item.list.map((book, index) => (
+                            <li
+                              key={index}
+                              className="text-xs md:text-sm text-gray-500 line-clamp-1"
+                            >
+                              {book}
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="flex justify-between items-center mt-1 md:mt-2">
+                          <span className="font-bold text-sm md:text-base">
+                            {formatPrice(item.price)}
+                          </span>
+                          {item.originalPrice &&
+                            item.originalPrice > item.price && (
+                              <span className="text-xs text-gray-500 line-through">
+                                {formatPrice(item.originalPrice)}
+                              </span>
+                            )}
+                        </div>
+
+                        <div className="mt-auto pt-2 md:pt-3">
+                          {!bookQuantities[item._id] ? (
+                            <button
+                              onClick={() => addToCart(item)}
+                              className={`w-full bg-blue-600 text-white py-1 md:py-2 px-2 md:px-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center text-xs md:text-sm ${
+                                cartLoading
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : ""
+                              }`}
+                              disabled={item.status === cartLoading}
+                            >
+                              {cartLoading ? (
+                                <div className="w-4 h-4 border-t-2 border-b-2 border-white rounded-full animate-spin mr-1"></div>
+                              ) : (
+                                <ShoppingCart size={14} className="mr-1" />
+                              )}
+                              <span>
+                                {item.status === "Out of Stock"
+                                  ? "Out of Stock"
+                                  : "Add to Cart"}
+                              </span>
+                            </button>
+                          ) : (
+                            <div className="w-full flex items-center justify-between border border-blue-600 rounded-md">
+                              <button
+                                onClick={() => updateQuantity(item._id, -1)}
+                                className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-l-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${
+                                  cartLoading
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }`}
+                                disabled={cartLoading}
+                              >
+                                -
+                              </button>
+                              <span className="px-2 text-sm">
+                                {bookQuantities[item._id]}
+                              </span>
+                              <button
+                                onClick={() => updateQuantity(item._id, 1)}
+                                className={`bg-blue-600 text-white py-1 px-2 md:px-3 rounded-r-md hover:bg-blue-700 transition-colors text-xs md:text-sm ${
+                                  cartLoading
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }`}
+                                disabled={cartLoading}
+                              >
+                                +
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Bookset Error Message */}
               </div>
             </div>
             <div className="w-full border border-gray-300 my-6 rounded-full"></div>
